@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumen - Photography Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0d1117;
+            color: #f0f6fc;
+        }
+        
+        .header {
+            background: #161b22;
+            border-bottom: 1px solid #30363d;
+            padding: 16px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-container {
+            max-width: 935px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #f0f6fc;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            color: #f0f6fc;
+        }
+        
+        .container {
+            max-width: 935px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        
+        .profile-section {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 40px;
+        }
+        
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            margin-bottom: 24px;
+        }
+        
+        .profile-pic {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+            font-weight: bold;
+        }
+        
+        .profile-info h2 {
+            font-size: 28px;
+            font-weight: 300;
+            margin-bottom: 16px;
+        }
+        
+        .profile-stats {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 16px;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-weight: 600;
+            font-size: 18px;
+        }
+        
+        .stat-label {
+            color: #7d8590;
+            font-size: 14px;
+        }
+        
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(293px, 1fr));
+            gap: 28px;
+            margin-top: 28px;
+        }
+        
+        .photo-item {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .photo-image {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+        }
+        
+        .photo-content {
+            padding: 16px;
+        }
+        
+        .photo-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .photo-description {
+            color: #7d8590;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        
+        .photo-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            background: #21262d;
+            color: #f0f6fc;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .btn-primary {
+            background: #238636;
+            color: white;
+            border-color: #238636;
+        }
+        
+        .btn:hover {
+            background: #30363d;
+        }
+        
+        .btn-primary:hover {
+            background: #2ea043;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #7d8590;
+        }
+        
+        .error {
+            color: #f85149;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .login-section {
+            max-width: 400px;
+            margin: 100px auto;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .login-section h1 {
+            margin-bottom: 32px;
+            font-size: 32px;
+            font-weight: 300;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+            text-align: left;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            font-size: 14px;
+            background: #0d1117;
+            color: #f0f6fc;
+        }
+        
+        .upload-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .upload-form {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 32px;
+            width: 90%;
+            max-width: 500px;
+        }
+        
+        .upload-form h2 {
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        
+        .file-upload {
+            border: 2px dashed #30363d;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 24px;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+        
+        .file-upload:hover {
+            border-color: #238636;
+        }
+        
+        .file-upload.dragover {
+            border-color: #238636;
+            background: rgba(35, 134, 54, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="loading">Loading Lumen...</div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCt8ERvmCTaV5obZHBTqOAOSCMTq-v16nE",
+            authDomain: "lumen-photo-app-20250731.firebaseapp.com",
+            projectId: "lumen-photo-app-20250731",
+            storageBucket: "lumen-photo-app-20250731.firebasestorage.app",
+            messagingSenderId: "316971929294",
+            appId: "1:316971929294:web:2163c5676bdeabe30e8a9f",
+            measurementId: "G-9KNBNQWSDG"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const API_BASE = 'http://100.106.201.33:8080';
+
+        let currentUser = null;
+        let currentToken = null;
+
+        // DOM manipulation helpers
+        function render(html) {
+            document.getElementById('app').innerHTML = html;
+        }
+
+        function getInitials(email) {
+            return email ? email.charAt(0).toUpperCase() : 'U';
+        }
+
+        // API helpers
+        async function apiCall(endpoint, options = {}) {
+            const headers = {
+                'Content-Type': 'application/json',
+                ...options.headers
+            };
+
+            if (currentToken) {
+                headers['Authorization'] = `Bearer ${currentToken}`;
+            }
+
+            const response = await fetch(`${API_BASE}${endpoint}`, {
+                ...options,
+                headers
+            });
+
+            return response.json();
+        }
+
+        // Render login page
+        function renderLogin() {
+            render(`
+                <div class="login-section">
+                    <h1>Lumen</h1>
+                    <p style="color: #8e8e8e; margin-bottom: 32px;">Photography platform for professionals</p>
+                    
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="loginEmail" value="carlos.irineu@gmail.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="loginPassword" value="testpassword123">
+                    </div>
+                    
+                    <button class="btn btn-primary" style="width: 100%; margin-bottom: 16px;" onclick="handleLogin()">
+                        Sign In
+                    </button>
+                    
+                    <button class="btn" style="width: 100%;" onclick="handleSignUp()">
+                        Create Account
+                    </button>
+                    
+                    <div id="loginError" class="error" style="display: none;"></div>
+                </div>
+            `);
+        }
+
+        // Render main dashboard
+        function renderDashboard(userData, photos) {
+            render(`
+                <div class="header">
+                    <div class="header-container">
+                        <div class="logo">Lumen</div>
+                        <div class="user-info">
+                            <span>Welcome, ${userData.email}</span>
+                            <button class="btn" onclick="handleLogout()">Sign Out</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="container">
+                    <div class="profile-section">
+                        <div class="profile-header">
+                            <div class="profile-pic">
+                                ${getInitials(userData.email)}
+                            </div>
+                            <div class="profile-info">
+                                <h2>${userData.display_name || userData.email}</h2>
+                                <div class="profile-stats">
+                                    <div class="stat">
+                                        <div class="stat-number">${photos.length}</div>
+                                        <div class="stat-label">photos</div>
+                                    </div>
+                                    <div class="stat">
+                                        <div class="stat-number">0</div>
+                                        <div class="stat-label">followers</div>
+                                    </div>
+                                    <div class="stat">
+                                        <div class="stat-number">0</div>
+                                        <div class="stat-label">following</div>
+                                    </div>
+                                </div>
+                                <button class="btn btn-primary" onclick="createNewPhoto()">Upload Photo</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="photo-grid">
+                        ${photos.map(photo => `
+                            <div class="photo-item">
+                                <img src="${photo.image_url}" alt="${photo.title}" class="photo-image">
+                                <div class="photo-content">
+                                    <div class="photo-title">${photo.title}</div>
+                                    <div class="photo-description">${photo.description || 'No description'}</div>
+                                    <div class="photo-actions">
+                                        <button class="btn" onclick="likePhoto('${photo.id}')">
+                                            ❤️ ${photo.likes_count}
+                                        </button>
+                                        <span style="color: #8e8e8e; font-size: 12px;">
+                                            ${new Date(photo.created_at).toLocaleDateString()}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `);
+        }
+
+        // Auth handlers
+        window.handleLogin = async () => {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                document.getElementById('loginError').style.display = 'block';
+                document.getElementById('loginError').textContent = error.message;
+            }
+        };
+
+        window.handleSignUp = async () => {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                document.getElementById('loginError').style.display = 'block';
+                document.getElementById('loginError').textContent = error.message;
+            }
+        };
+
+        window.handleLogout = async () => {
+            await signOut(auth);
+        };
+
+        // Photo handlers
+        window.createNewPhoto = () => {
+            showUploadModal();
+        };
+
+        function showUploadModal() {
+            const modal = document.createElement('div');
+            modal.className = 'upload-modal';
+            modal.innerHTML = `
+                <div class="upload-form">
+                    <h2>Upload Photo</h2>
+                    
+                    <div class="file-upload" id="fileUpload">
+                        <p>📷</p>
+                        <p>Drag & drop your photo here</p>
+                        <p style="color: #7d8590; font-size: 14px;">or click to select file</p>
+                        <input type="file" id="photoFile" accept="image/*" style="display: none;">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Title *</label>
+                        <input type="text" id="photoTitle" placeholder="Enter photo title" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Description</label>
+                        <input type="text" id="photoDescription" placeholder="Enter photo description">
+                    </div>
+                    
+                    <div style="display: flex; gap: 16px; margin-top: 24px;">
+                        <button class="btn btn-primary" style="flex: 1;" onclick="submitPhoto()">Upload Photo</button>
+                        <button class="btn" onclick="closeUploadModal()">Cancel</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // File upload handlers
+            const fileUpload = modal.querySelector('#fileUpload');
+            const fileInput = modal.querySelector('#photoFile');
+            
+            fileUpload.onclick = () => fileInput.click();
+            
+            fileInput.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    fileUpload.innerHTML = `
+                        <p>📷</p>
+                        <p><strong>${file.name}</strong></p>
+                        <p style="color: #7d8590; font-size: 14px;">${(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                    `;
+                }
+            };
+            
+            // Drag and drop
+            fileUpload.ondragover = (e) => {
+                e.preventDefault();
+                fileUpload.classList.add('dragover');
+            };
+            
+            fileUpload.ondragleave = () => {
+                fileUpload.classList.remove('dragover');
+            };
+            
+            fileUpload.ondrop = (e) => {
+                e.preventDefault();
+                fileUpload.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    fileInput.files = files;
+                    fileInput.onchange({ target: { files } });
+                }
+            };
+        }
+
+        window.submitPhoto = async () => {
+            const title = document.getElementById('photoTitle').value;
+            const description = document.getElementById('photoDescription').value;
+            const fileInput = document.getElementById('photoFile');
+            
+            if (!title.trim()) {
+                alert('Please enter a photo title');
+                return;
+            }
+            
+            try {
+                // For now, create photo without actual file upload
+                // In a real app, you'd upload the file to Cloud Storage first
+                await apiCall('/api/v1/photos/', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        title: title.trim(),
+                        description: description.trim(),
+                        is_public: true
+                    })
+                });
+                
+                closeUploadModal();
+                loadDashboard(); // Refresh
+                alert('Photo uploaded successfully!');
+            } catch (error) {
+                alert('Error uploading photo: ' + error.message);
+            }
+        };
+
+        window.closeUploadModal = () => {
+            const modal = document.querySelector('.upload-modal');
+            if (modal) {
+                modal.remove();
+            }
+        };
+
+        window.likePhoto = async (photoId) => {
+            try {
+                await apiCall(`/api/v1/photos/${photoId}/like`, {
+                    method: 'POST'
+                });
+                alert('Photo liked!');
+            } catch (error) {
+                alert('Error liking photo: ' + error.message);
+            }
+        };
+
+        // Load dashboard data
+        async function loadDashboard() {
+            try {
+                const [userData, photosData] = await Promise.all([
+                    apiCall('/api/v1/users/me'),
+                    apiCall('/api/v1/photos/my-photos')
+                ]);
+
+                renderDashboard(userData, photosData.photos);
+            } catch (error) {
+                render(`<div class="error">Error loading dashboard: ${error.message}</div>`);
+            }
+        }
+
+        // Auth state listener
+        onAuthStateChanged(auth, async (user) => {
+            currentUser = user;
+            
+            if (user) {
+                currentToken = await user.getIdToken();
+                loadDashboard();
+            } else {
+                currentToken = null;
+                renderLogin();
+            }
+        });
+    </script>
+</body>
+</html>

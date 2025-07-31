@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumen API Test Client</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #3367d6;
+        }
+        .response {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success {
+            border-color: #28a745;
+            background-color: #d4edda;
+        }
+        .error {
+            border-color: #dc3545;
+            background-color: #f8d7da;
+        }
+        input {
+            padding: 10px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Lumen API Test Client</h1>
+        <p>Test your Lumen API endpoints without Firebase authentication first</p>
+        
+        <div class="section">
+            <h2>Basic API Tests</h2>
+            <button onclick="testRoot()">Test Root Endpoint</button>
+            <button onclick="testHealth()">Test Health Check</button>
+            <button onclick="testAuthTest()">Test Auth Test Endpoint</button>
+            <button onclick="testAuthStatus()">Test Auth Status</button>
+        </div>
+
+        <div class="section">
+            <h2>Protected Endpoints (Will Fail Without Auth)</h2>
+            <button onclick="testProtected()">Test Protected Endpoint</button>
+            <button onclick="testProfile()">Test Profile Endpoint</button>
+        </div>
+
+        <div class="section">
+            <h2>Manual Token Test</h2>
+            <p>If you get a Firebase token from elsewhere, test it here:</p>
+            <input type="text" id="tokenInput" placeholder="Paste Firebase ID token here">
+            <button onclick="testWithToken()">Test with Token</button>
+        </div>
+
+        <div class="section">
+            <h2>API Response</h2>
+            <div id="apiResponse" class="response">Click a button to test API endpoints...</div>
+        </div>
+    </div>
+
+    <script>
+        // Your Lumen API base URL
+        const API_BASE = 'http://100.106.201.33:8080';
+
+        async function makeRequest(url, options = {}) {
+            try {
+                console.log('Making request to:', url);
+                const response = await fetch(url, {
+                    ...options,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    }
+                });
+                
+                const data = await response.json();
+                console.log('Response:', response.status, data);
+                
+                showResponse(
+                    `Status: ${response.status}\n\n${JSON.stringify(data, null, 2)}`,
+                    response.ok ? 'success' : 'error'
+                );
+                
+                return { response, data };
+            } catch (error) {
+                console.error('Request error:', error);
+                showResponse(`Error: ${error.message}`, 'error');
+                return { error };
+            }
+        }
+
+        async function testRoot() {
+            await makeRequest(`${API_BASE}/`);
+        }
+
+        async function testHealth() {
+            await makeRequest(`${API_BASE}/health`);
+        }
+
+        async function testAuthTest() {
+            await makeRequest(`${API_BASE}/api/v1/auth/test`);
+        }
+
+        async function testAuthStatus() {
+            await makeRequest(`${API_BASE}/api/v1/auth/status`);
+        }
+
+        async function testProtected() {
+            await makeRequest(`${API_BASE}/api/v1/auth/demo-protected`);
+        }
+
+        async function testProfile() {
+            await makeRequest(`${API_BASE}/api/v1/auth/profile`);
+        }
+
+        async function testWithToken() {
+            const token = document.getElementById('tokenInput').value.trim();
+            if (!token) {
+                showResponse('Please enter a token', 'error');
+                return;
+            }
+
+            await makeRequest(`${API_BASE}/api/v1/auth/demo-protected`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+        }
+
+        function showResponse(text, type) {
+            const responseDiv = document.getElementById('apiResponse');
+            responseDiv.textContent = text;
+            responseDiv.className = `response ${type}`;
+        }
+    </script>
+</body>
+</html>

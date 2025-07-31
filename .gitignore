@@ -1,0 +1,77 @@
+# Lumen Project .gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+lumen-gcp/backend/venv/
+lumen-gcp/backend/env/
+lumen-gcp/backend/ENV/
+lumen-gcp/backend/.venv
+
+# Environment variables (SENSITIVE)
+lumen-gcp/backend/.env
+lumen-gcp/backend/.env.local
+lumen-gcp/backend/.env.*.local
+
+# Firebase Service Account (SENSITIVE - NEVER COMMIT)
+lumen-gcp/backend/firebase_service_account.json
+lumen-gcp/backend/*service_account*.json
+
+# Google Cloud SDK
+lumen-gcp/backend/google-cloud-sdk/
+lumen-gcp/backend/google-cloud-cli-*.tar.gz
+
+# Logs
+*.log
+lumen-gcp/backend/server.log
+lumen-gcp/backend/webserver.log
+lumen-gcp/frontend/webserver.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+
+# Database
+*.db
+*.sqlite3
+
+# Uploads (local development)
+uploads/
+temp/
+lumen-gcp/backend/uploads/
+
+# Node.js (for future frontend)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Terraform (if used later)
+lumen-gcp/infrastructure/terraform/*.tfstate
+lumen-gcp/infrastructure/terraform/*.tfstate.*
+lumen-gcp/infrastructure/terraform/.terraform/
+lumen-gcp/infrastructure/terraform/.terraform.lock.hcl
+
+# Backup files
+*.bak
+*.backup
+
+# Development artifacts
+.pytest_cache/
+.mypy_cache/
