@@ -1,23 +1,33 @@
 # CLAUDE.md
 
-Instructions for Claude Code when working with this repository.
-
-## Critical Rules
-- **NEVER USE EMOJIS** - Never add emojis to any files or responses
-- **NEVER GET STUCK IN LOOPS** - Always use `nohup` with `&` for servers, never wait for output
-- **NO MOCKS** - Never use mock data or temporary workarounds, always implement real functionality
-- **READ ALL MD FILES ON START** - Always check project_status.md, CLAUDE.md, and README.md first
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
-Lumen - Instagram-like photography platform with real photo uploads, Firebase auth, and Google Cloud Storage.
 
-## Server Management
-**Backend**: `cd lumen-gcp/backend && source venv/bin/activate && nohup uvicorn app.main:app --reload --host 0.0.0.0 --port 8080 > server.log 2>&1 &`
-**Frontend**: `cd lumen-gcp/frontend && python3 -m http.server 8000`
-**Access**: http://100.106.201.33:8080 (API), http://100.106.201.33:8000/lumen-app.html (Web)
+This is the Lumen project - an artistic photography platform built on Google Cloud Platform. The project consists of:
+- **Backend**: FastAPI Python service deployed on Cloud Run
+- **Frontend**: React Native (Expo) with web support
+- **Infrastructure**: Terraform-managed GCP resources
 
-## Network Access
-All development accessible via Tailscale network (100.106.201.33). Never use localhost URLs.
+## Development Commands
+
+### Backend Development
+```bash
+cd lumen-gcp/backend
+pip install -r requirements.txt
+# CRITICAL: Use nohup to avoid terminal blocking loops - NEVER get stuck!
+nohup uvicorn app.main:app --reload --host 0.0.0.0 --port 8080 > server.log 2>&1 &
+# Server accessible at: http://100.106.201.33:8080 (Tailscale IP)
+```
+
+## Development Server Instructions for Claude
+**CRITICAL: NEVER get stuck in server start loops**
+- Always use `nohup` with `&` to run servers in background
+- NEVER wait for server output or let terminal hang
+- Server runs at: http://100.106.201.33:8080 (Tailscale IP)
+- Frontend at: http://100.106.201.33:8000/lumen-app.html
+- Check server status: `ps aux | grep uvicorn`
+- Kill server: `pkill -f uvicorn`
 
 ### Frontend Development
 ```bash

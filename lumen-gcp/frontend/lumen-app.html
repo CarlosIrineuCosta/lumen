@@ -462,8 +462,9 @@
                         <p>📷</p>
                         <p>Drag & drop your photo here</p>
                         <p style="color: #7d8590; font-size: 14px;">or click to select file</p>
-                        <input type="file" id="photoFile" accept="image/*" style="display: none;">
                     </div>
+                    
+                    <input type="file" id="photoFile" accept="image/*" style="display: none;">
                     
                     <div class="form-group">
                         <label>Title *</label>
@@ -523,31 +524,90 @@
         }
 
         window.submitPhoto = async () => {
-            const title = document.getElementById('photoTitle').value;
-            const description = document.getElementById('photoDescription').value;
-            const fileInput = document.getElementById('photoFile');
+            const modal = document.querySelector('.upload-modal');
+            if (!modal) {
+                alert('Modal not found');
+                return;
+            }
+            
+            const titleInput = modal.querySelector('#photoTitle');
+            const descInput = modal.querySelector('#photoDescription');
+            const fileInput = modal.querySelector('input[type="file"]');
+            
+            console.log('Modal elements:', { titleInput, descInput, fileInput });
+            console.log('All inputs in modal:', modal.querySelectorAll('input'));
+            
+            if (!titleInput || !descInput || !fileInput) {
+                alert('Form elements not found - fileInput: ' + (fileInput ? 'found' : 'missing'));
+                return;
+            }
+            
+            const title = titleInput.value;
+            const description = descInput.value;
+            
+            console.log('Starting photo upload...', { title, description, fileInput });
             
             if (!title.trim()) {
                 alert('Please enter a photo title');
                 return;
             }
             
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert('Please select a photo to upload');
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            console.log('File selected:', file.name, file.size, file.type);
+            
+            if (!currentToken) {
+                alert('Not authenticated. Please log in again.');
+                return;
+            }
+            
             try {
-                // For now, create photo without actual file upload
-                // In a real app, you'd upload the file to Cloud Storage first
-                await apiCall('/api/v1/photos/', {
+                // Create FormData for file upload
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('title', title.trim());
+                formData.append('description', description.trim());
+                formData.append('is_public', 'true');
+                
+                console.log('Uploading to:', `${API_BASE}/api/v1/photos/upload`);
+                console.log('With token:', currentToken ? 'Present' : 'Missing');
+                
+                // Upload file to backend
+                const response = await fetch(`${API_BASE}/api/v1/photos/upload`, {
                     method: 'POST',
-                    body: JSON.stringify({
-                        title: title.trim(),
-                        description: description.trim(),
-                        is_public: true
-                    })
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`
+                    },
+                    body: formData
                 });
+                
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Upload error response:', errorText);
+                    let errorMessage;
+                    try {
+                        const error = JSON.parse(errorText);
+                        errorMessage = error.detail || 'Upload failed';
+                    } catch {
+                        errorMessage = errorText || 'Upload failed';
+                    }
+                    throw new Error(errorMessage);
+                }
+                
+                const result = await response.json();
+                console.log('Upload successful:', result);
                 
                 closeUploadModal();
                 loadDashboard(); // Refresh
                 alert('Photo uploaded successfully!');
             } catch (error) {
+                console.error('Upload error:', error);
                 alert('Error uploading photo: ' + error.message);
             }
         };
@@ -573,12 +633,32 @@
         // Load dashboard data
         async function loadDashboard() {
             try {
-                const [userData, photosData] = await Promise.all([
-                    apiCall('/api/v1/users/me'),
-                    apiCall('/api/v1/photos/my-photos')
-                ]);
+                // Try to get user data first
+                let userData;
+                try {
+                    userData = await apiCall('/api/v1/users/me');
+                } catch (userError) {
+                    // If user profile not found, redirect to registration
+                    if (userError.message.includes('404') || 
+                        userError.message.includes('User profile not found') || 
+                        userError.message.includes('complete registration')) {
+                        window.location.href = '/user-registration.html';
+                        return;
+                    }
+                    throw userError;
+                }
 
-                renderDashboard(userData, photosData.photos);
+                // Try to get photos data
+                let photosData;
+                try {
+                    photosData = await apiCall('/api/v1/photos/my-photos');
+                } catch (photosError) {
+                    console.warn('Error loading photos:', photosError);
+                    // Continue with empty photos if there's an error
+                    photosData = { photos: [] };
+                }
+
+                renderDashboard(userData, photosData.photos || []);
             } catch (error) {
                 render(`<div class="error">Error loading dashboard: ${error.message}</div>`);
             }
