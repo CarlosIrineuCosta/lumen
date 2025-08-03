@@ -1,45 +1,23 @@
 # Lumen Implementation Details
 
-Complete technical implementation for professional photography platform.
+Complete technical implementation documentation.
 
-## Business-Driven Architecture
+## System Architecture
 
-### Platform Vision
-Professional photography alternative to Instagram with:
-- **Uncensored artistic expression** - No arbitrary content restrictions
-- **People-first networking** - GPS-based photographer/model connections
-- **Quality-focused discovery** - No engagement manipulation algorithms
-- **Subscription revenue** - User empowerment over data exploitation
+### Backend (FastAPI)
+- **Location**: `/home/cdc/projects/wasenet/lumen-gcp/backend`
+- **Python**: 3.11.13 with venv (no Conda)
+- **Framework**: FastAPI 0.104.1
+- **Authentication**: Firebase Admin SDK 6.3.0
+- **Storage**: Google Cloud Storage 2.10.0
+- **Image Processing**: Pillow 10.1.0
 
-### Current Technical Stack
-- **Backend**: FastAPI 0.104.1 (Python 3.11.13) with Firebase Admin SDK
-- **Database**: PostgreSQL (Cloud SQL) - migrating from in-memory
-- **Storage**: Google Cloud Storage with multi-format compression
-- **Authentication**: Firebase JWT with proper state management (needs fixing)
-- **Frontend**: Migrating to claudesk-code/lumen-prototype (Justified Gallery)
-
-## Infrastructure (Google Cloud Platform)
-- **Project**: lumen-photo-app-20250731
-- **Region**: us-central1  
-- **Services**: Cloud Storage, Firebase, Cloud SQL, Vertex AI
-- **Bucket**: lumen-photos-20250731 (public read access)
-- **Network**: Tailscale mesh (100.106.201.33)
-- **Budget**: $3-7/day monitoring with cost optimization
-
-## Frontend Architecture (New Direction)
-
-### Justified Gallery Implementation
-**Location**: `/home/cdc/projects/wasenet/claudesk-code/lumen-prototype`
-- **Mosaic Layout**: Variable-sized grid respecting image proportions
-- **Library**: Justified Gallery (same as 500px)
-- **Performance**: Lazy loading, infinite scroll, optimized for high-res photography
-- **Discovery Modes**: Latest Work, Photographers, Models, Nearby (30km), Open for Work
-
-### People-First Design Philosophy  
-- **Photographer Focus**: Every image shows WHO took it, not just the image
-- **Model Recognition**: Equal discovery for photographers AND models
-- **Professional Networking**: Geographic collaboration tools
-- **Portfolio System**: Toggle between feed and curated professional work
+### Frontend (Vanilla JS)
+- **Location**: `/home/cdc/projects/wasenet/lumen-gcp/frontend`
+- **Main App**: `lumen-app.html`
+- **Firebase**: Client SDK 10.7.1
+- **Style**: Dark mode, Instagram-like interface
+- **Features**: Drag/drop upload, real-time gallery
 
 ### Google Cloud Platform
 - **Project ID**: lumen-photo-app-20250731
@@ -76,25 +54,15 @@ lumen-gcp/
 └── docs/                         # Documentation
 ```
 
-## API Endpoints (Current + Planned)
-
-### Authentication (Needs Fixes)
-- `POST /api/v1/auth/status` - Auth status (fix state management)
+## API Endpoints
+- `GET /` - API status
+- `GET /health` - Health check
+- `POST /api/v1/auth/status` - Auth status
 - `GET /api/v1/auth/profile` - User profile (protected)
-- `POST /api/v1/auth/register` - User registration (fix completion flow)
-
-### Photo Management
-- `POST /api/v1/photos/upload` - Upload with compression pipeline
-- `GET /api/v1/photos/recent` - Recent photos feed (for Latest Work mode)
+- `GET /api/v1/users/me` - Current user info
+- `POST /api/v1/photos/upload` - Photo upload
 - `GET /api/v1/photos/my-photos` - User's photos
-- `GET /api/v1/photos/{id}` - Single photo details for lightbox
-
-### Discovery (New - Based on Business Strategy)
-- `GET /api/v1/discovery/photographers` - Photographers mode
-- `GET /api/v1/discovery/models` - Models mode  
-- `GET /api/v1/discovery/nearby` - Geographic discovery (30km radius)
-- `GET /api/v1/discovery/collaborations` - Open for work
-- `POST /api/v1/networking/connect` - Professional connection requests
+- `POST /api/v1/photos/{id}/like` - Like photo
 
 ## Development Commands
 
@@ -176,29 +144,11 @@ ALLOWED_ORIGINS=http://localhost:3000,http://localhost:19006,http://100.106.201.
 - **Real Connections**: Location-based networking for shoots, collaborations
 - **Portfolio Focus**: Every photo should contribute to a professional body of work
 
-## Implementation Priorities
-
-### Phase 1: Foundation (This Weekend)
-1. **Fix Authentication**: State management and registration completion
-2. **Frontend Migration**: Move to claudesk-code/lumen-prototype 
-3. **Database Migration**: Complete Cloud SQL PostgreSQL setup
-4. **Image Compression**: MozJPEG pipeline for web delivery
-
-### Phase 2: Business Features (Next Sprint)
-1. **Discovery Modes**: Implement people-first navigation
-2. **Geographic Networking**: GPS-based photographer/model connections  
-3. **Professional Profiles**: Portfolio vs feed content separation
-4. **Smart Tagging**: Vertex AI for categorization (not moderation)
-
-### Phase 3: Advanced Features
-1. **TV Integration**: 4K display mode for professional presentation
-2. **Contract System**: Digital model releases and agreements  
-3. **Portfolio Tools**: Automated professional portfolio generation
-4. **Magazine Integration**: Content curation and quality awards
-
-## Current Limitations to Address
-- **Authentication**: Token persistence and state management issues
-- **Database**: Still using in-memory storage (photos lost on restart)
-- **Content Discovery**: No geographic or professional networking features
-- **Image Processing**: Basic compression, needs multi-format pipeline
-- **Mobile**: Web-only, needs responsive optimization for prototype
+## Next Implementation Steps
+1. **Database**: Replace in-memory with Cloud SQL PostgreSQL
+2. **Deployment**: Containerize and deploy to Cloud Run
+3. **Mobile**: Build React Native/Expo apps
+4. **AI**: Add Vertex AI for smart tagging and categorization (not moderation)
+5. **Instagram Import**: Build photo import and portfolio generation pipeline
+6. **GPS Integration**: Location-based photographer networking
+7. **Portfolio System**: Enhanced automatic portfolio generation

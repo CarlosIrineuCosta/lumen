@@ -3,30 +3,18 @@
 Instructions for Claude Code when working with this repository.
 
 ## Critical Rules
-- **NEVER USE EMOJIS** - Never add emojis to any files, responses, or UI elements
+- **NEVER USE EMOJIS** - Never add emojis to any files or responses
 - **NEVER GET STUCK IN LOOPS** - Always use `nohup` with `&` for servers, never wait for output
 - **NO MOCKS** - Never use mock data or temporary workarounds, always implement real functionality
 - **READ ALL MD FILES ON START** - Always check project_status.md, CLAUDE.md, and README.md first
 
 ## Project Overview
-Lumen - Professional photography platform with real photo uploads, Firebase auth, and Google Cloud Storage. Instagram-like interface focused on professional photography networking and people-first discovery.
-
-## Core Business Principles
-- **NO ADS EVER** - Clean, distraction-free photography experience
-- **NO ALGORITHMIC PLACEMENT** - Chronological, user-controlled content discovery
-- **PEOPLE-FIRST DISCOVERY** - Find photographers/models, not just browse images
-- **PROFESSIONAL NETWORKING** - Real-world connections via GPS proximity
-- **SUBSCRIPTION MODEL** - $5-150/year, no data exploitation or engagement manipulation
-
-## Current Status: MVP Development
-**COMPLETED**: Firebase authentication, user avatars, backend models, 500px-style gallery framework
-**IN PROGRESS**: Backend server startup, database initialization
-**NEXT**: Image upload, user profiles, photo stream display
+Lumen - Instagram-like photography platform with real photo uploads, Firebase auth, and Google Cloud Storage.
 
 ## Server Management
-**Backend**: `cd lumen-gcp/backend && source venv/bin/activate && python -m uvicorn app.main:app --host 0.0.0.0 --port 8080 &`
-**Frontend**: `cd lumen-gcp/frontend && python3 -m http.server 8001`
-**Access**: http://100.106.201.33:8080 (API), http://100.106.201.33:8001/lumen-app.html (Web)
+**Backend**: `cd lumen-gcp/backend && source venv/bin/activate && nohup uvicorn app.main:app --reload --host 0.0.0.0 --port 8080 > server.log 2>&1 &`
+**Frontend**: `cd lumen-gcp/frontend && python3 -m http.server 8000`
+**Access**: http://100.106.201.33:8080 (API), http://100.106.201.33:8000/lumen-app.html (Web)
 
 ## Network Access
 All development accessible via Tailscale network (100.106.201.33). Never use localhost URLs.
@@ -119,37 +107,3 @@ This project runs on a Linux terminal environment accessible via Tailscale netwo
 - **NO MOCKS**: Never use mock data or temporary workarounds - they take too long and cause distractions
 - Always implement real functionality with actual services
 - Fix issues directly rather than working around them
-- **QUALITY OVER SCALE**: Professional photography focus, not viral growth
-- **USER EMPOWERMENT**: Users own their data, complete export capabilities
-
-## MVP Requirements for Demo/User Testing
-**Critical features needed for showing around and talking to people:**
-
-### User Experience Essentials
-- Logout button in user profile menu
-- User profile edit form (display name, bio, city, photography styles)
-- Model-specific fields (gender, age, height, weight) for models
-
-### Core Functionality
-- Image upload system (drag & drop, Firebase Storage)
-- User uploads view (own photos, edit/delete)
-- Photo stream display (all photos, 500px-style layout)
-- Infinite scroll and basic filtering
-
-### Technical Implementation
-- Backend server running successfully
-- PostgreSQL database initialized with schema + seed data
-- Photo upload endpoints
-- User profile management endpoints
-- Replace frontend mock data with real backend APIs
-
-## Coordination Notes
-**WARNING**: Claude Opus is evolving specs in `L:\projects\wasenet\docs\specs-ago02`
-- Need ONE unified folder for both Claude instances
-- Separate folder for planning vs actual code evolution
-- Different pace between spec discussions and implementation
-
-## Development Environment
-- Python 3.11.x reference environment
-- Firebase authentication working (Google OAuth with redirect fallback)
-- 500px open source repo research needed for gallery patterns
