@@ -11,6 +11,7 @@
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
     
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -39,7 +40,34 @@
             <div class="user-actions">
                 <button class="btn-upload">Upload</button>
                 <div class="user-menu">
-                    <img src="https://via.placeholder.com/40" alt="User" class="user-avatar">
+                    <img src="https://via.placeholder.com/40" alt="User" class="user-avatar" id="user-avatar">
+                    <div class="user-dropdown" id="user-dropdown">
+                        <div class="dropdown-header">
+                            <img src="https://via.placeholder.com/50" alt="User" class="dropdown-avatar">
+                            <div class="dropdown-user-info">
+                                <div class="dropdown-name">Loading...</div>
+                                <div class="dropdown-email">Loading...</div>
+                            </div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item" id="menu-profile">
+                            <span class="dropdown-icon">👤</span>
+                            Edit Profile
+                        </a>
+                        <a href="#" class="dropdown-item" id="menu-uploads">
+                            <span class="dropdown-icon">📸</span>
+                            My Uploads
+                        </a>
+                        <a href="#" class="dropdown-item" id="menu-settings">
+                            <span class="dropdown-icon">⚙️</span>
+                            Settings
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item" id="menu-logout">
+                            <span class="dropdown-icon">🚪</span>
+                            Sign Out
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

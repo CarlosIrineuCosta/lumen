@@ -202,6 +202,8 @@ class CreatePhotoRequest(BaseModel):
     is_public: bool = True
     is_portfolio: bool = False
     camera_data: Optional[Dict] = None
+    
+    model_config = {"protected_namespaces": ()}
 
 
 class UpdatePhotoRequest(BaseModel):
@@ -214,6 +216,8 @@ class UpdatePhotoRequest(BaseModel):
     content_rating: Optional[str] = None
     is_public: Optional[bool] = None
     is_portfolio: Optional[bool] = None
+    
+    model_config = {"protected_namespaces": ()}
 
 
 class PhotoSearchQuery(BaseModel):
@@ -242,3 +246,40 @@ class PhotoUrls(BaseModel):
     image_url: str
     thumbnail_url: Optional[str] = None
     preview_url: Optional[str] = None
+
+
+class PhotoMetadata(BaseModel):
+    """Photo metadata extracted from image"""
+    width: Optional[int] = None
+    height: Optional[int] = None
+    file_size: int
+    mime_type: Optional[str] = None
+    color_space: Optional[str] = None
+    orientation: int = 1
+    camera_make: Optional[str] = None
+    camera_model: Optional[str] = None
+    lens_model: Optional[str] = None
+    focal_length: Optional[float] = None
+    aperture: Optional[float] = None
+    shutter_speed: Optional[str] = None
+    iso: Optional[int] = None
+    flash: Optional[bool] = None
+    gps_latitude: Optional[float] = None
+    gps_longitude: Optional[float] = None
+    date_taken: Optional[datetime] = None
+
+
+class PhotoEngagement(BaseModel):
+    """Photo engagement metrics"""
+    likes_count: int = 0
+    comments_count: int = 0
+    views_count: int = 0
+    shares_count: int = 0
+
+
+class PhotoStatus(str, Enum):
+    """Photo processing status"""
+    UPLOADING = "uploading"
+    PROCESSING = "processing"
+    READY = "ready"
+    FAILED = "failed"

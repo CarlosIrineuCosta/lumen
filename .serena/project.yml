@@ -1,0 +1,37 @@
+# Serena project configuration for Lumen (WaseNet) - Main Project Root
+# This configuration covers the entire project including backend, frontend, and infrastructure
+
+# language of the project (csharp, python, rust, java, typescript, go, cpp, or ruby)
+language: python
+
+# whether to use the project's gitignore file to ignore files
+ignore_all_files_in_gitignore: true
+
+# list of additional paths to ignore
+ignored_paths: 
+  - "lumen-gcp/.serena/*"
+  - "*.log"
+  - "auth_export.json"
+  - "firebase-service-account.json"
+
+# whether the project is in read-only mode
+read_only: false
+
+# excluded tools - none for full development capability
+excluded_tools: []
+
+# initial prompt for the project
+initial_prompt: |
+  This is the Lumen photography platform project. Key directories:
+  - lumen-gcp/backend/ - FastAPI backend with PostgreSQL and Firebase
+  - lumen-gcp/frontend/ - Web frontend with Firebase auth
+  - lumen-gcp/infrastructure/ - Terraform GCP infrastructure
+  - docs/ - Project documentation
+  
+  Main files:
+  - lumen-gcp/frontend/lumen-app.html - Main web application
+  - lumen-gcp/backend/app/main.py - FastAPI backend entry point
+  - CLAUDE.md - Development instructions
+  - SHARED-STATUS.md - Multi-AI coordination status
+
+project_name: "wasenet-lumen"

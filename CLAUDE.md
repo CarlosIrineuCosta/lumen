@@ -5,6 +5,8 @@ Instructions for Claude Code when working with this repository.
 ## Critical Rules
 - **NEVER USE EMOJIS** - Never add emojis to any files, responses, or UI elements
 - **NEVER GET STUCK IN LOOPS** - Always use `nohup` with `&` for servers, never wait for output
+- **DAILY SERVER CLEANUP** - Always run `./scripts/server-manager.sh clean` before starting work to prevent port conflicts
+- **USE SERENA EXTENSIVELY** - Leverage semantic analysis, memory system, and symbol-level code understanding instead of basic file operations
 - **NO MOCKS** - Never use mock data or temporary workarounds, always implement real functionality
 - **READ ALL MD FILES ON START** - Always check project_status.md, CLAUDE.md, and README.md first
 
@@ -18,15 +20,48 @@ Lumen - Professional photography platform with real photo uploads, Firebase auth
 - **PROFESSIONAL NETWORKING** - Real-world connections via GPS proximity
 - **SUBSCRIPTION MODEL** - $5-150/year, no data exploitation or engagement manipulation
 
-## Current Status: MVP Development
-**COMPLETED**: Firebase authentication, user avatars, backend models, 500px-style gallery framework
-**IN PROGRESS**: Backend server startup, database initialization
-**NEXT**: Image upload, user profiles, photo stream display
+## Current Status: MVP Development (2025-08-04)
+**COMPLETED**: 
+- Firebase authentication, user avatars, backend models, 500px-style gallery framework
+- PostgreSQL architecture migration (PhotoService, API endpoints)
+- Backend/frontend servers running successfully
+- API contract fixes for upload functionality
 
-## Server Management
-**Backend**: `cd lumen-gcp/backend && source venv/bin/activate && python -m uvicorn app.main:app --host 0.0.0.0 --port 8080 &`
-**Frontend**: `cd lumen-gcp/frontend && python3 -m http.server 8001`
-**Access**: http://100.106.201.33:8080 (API), http://100.106.201.33:8001/lumen-app.html (Web)
+**BLOCKED**: Database schema mismatch - Photo model expects `extra_data` column that doesn't exist in PostgreSQL
+
+**NEXT**: Fix database schema, test upload workflow, complete frontend integration
+
+## Server Management (AUTOMATED SOLUTION)
+**ALWAYS USE THE AUTOMATED SCRIPT** - Never manually start servers to avoid port conflicts:
+
+```bash
+# Clean startup (kills any existing processes)
+./scripts/server-manager.sh start
+
+# Check status
+./scripts/server-manager.sh status
+
+# Stop all servers
+./scripts/server-manager.sh stop
+
+# Restart servers
+./scripts/server-manager.sh restart
+```
+
+**Manual Commands (ONLY if script fails)**:
+- Backend: `cd lumen-gcp/backend && source venv/bin/activate && python -m uvicorn app.main:app --host 0.0.0.0 --port 8080 &`
+- Frontend: `cd lumen-gcp/frontend && python3 -m http.server 8001`
+
+**Access URLs**:
+- Backend API: http://100.106.201.33:8080
+- API Docs: http://100.106.201.33:8080/docs  
+- Frontend App: http://100.106.201.33:8001/lumen-app.html
+
+## File Paths Reference
+**Main App**: `lumen-gcp/frontend/lumen-app.html`
+**Backend API**: `lumen-gcp/backend/app/main.py`
+**CSS**: `lumen-gcp/frontend/css/lumen.css`
+**JavaScript**: `lumen-gcp/frontend/js/lumen-gallery.js`
 
 ## Network Access
 All development accessible via Tailscale network (100.106.201.33). Never use localhost URLs.
@@ -143,13 +178,42 @@ This project runs on a Linux terminal environment accessible via Tailscale netwo
 - User profile management endpoints
 - Replace frontend mock data with real backend APIs
 
-## Coordination Notes
-**WARNING**: Claude Opus is evolving specs in `L:\projects\wasenet\docs\specs-ago02`
-- Need ONE unified folder for both Claude instances
-- Separate folder for planning vs actual code evolution
-- Different pace between spec discussions and implementation
+## Multi-AI Coordination System
+
+### Roles & Responsibilities
+- **Claude Code**: Head developer (technical implementation lead) - THIS ROLE
+- **Claude Desktop**: Systems architect and business planner
+- **Gemini CLI**: GCP and Firebase specialist / developer
+
+### Shared Workspace
+- **Environment**: Same VS Code terminal with multiple AI assistants
+- **Coordination File**: `SHARED-STATUS.md` - ALWAYS CHECK AND UPDATE
+- **Reference Files**: `CLAUDE.md` (this), `GEMINI.md`, `SHARED-STATUS.md`
+
+### Documentation Structure
+
+This project uses a prefix-based documentation system:
+
+- **CODE-** prefix: Technical implementation documents (Claude Code territory)
+- **STRATEGY-** prefix: Business strategy and planning documents (Claude Desktop territory)
+
+### Claude Code Responsibilities (Head Developer)
+
+- **Technical Leadership**: Guide implementation decisions and coordinate with specialists
+- **Code Implementation**: Write, debug, and test all application code
+- **Architecture Implementation**: Implement technical architecture decisions
+- **Quality Assurance**: Ensure code quality, testing, and documentation
+- **Team Coordination**: Update `SHARED-STATUS.md` and direct specialist tasks
+
+### Coordination Protocol
+
+- **Always check** `SHARED-STATUS.md` before starting work
+- **Update status** when completing tasks or encountering blockers
+- **Direct specialists** (Gemini CLI) on GCP/Firebase tasks
+- **Communicate handoffs** clearly between development phases
 
 ## Development Environment
+
 - Python 3.11.x reference environment
 - Firebase authentication working (Google OAuth with redirect fallback)
 - 500px open source repo research needed for gallery patterns

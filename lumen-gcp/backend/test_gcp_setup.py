@@ -3,6 +3,7 @@
 
 import os
 from google.cloud import storage
+from google.oauth2 import service_account
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -17,7 +18,9 @@ def test_cloud_storage():
     print(f"📦 Bucket: {bucket_name}")
     
     try:
-        client = storage.Client(project=project_id)
+        cred_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
+        credentials = service_account.Credentials.from_service_account_file(cred_path)
+        client = storage.Client(project=project_id, credentials=credentials)
         bucket = client.bucket(bucket_name)
         
         if bucket.exists():

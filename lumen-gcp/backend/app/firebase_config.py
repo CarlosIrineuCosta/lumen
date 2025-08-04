@@ -20,7 +20,7 @@ class FirebaseConfig:
             # Check if Firebase is already initialized
             if not firebase_admin._apps:
                 # Get credentials file path
-                cred_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+                cred_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
                 project_id = os.getenv("FIREBASE_PROJECT_ID")
                 
                 if not cred_path or not os.path.exists(cred_path):

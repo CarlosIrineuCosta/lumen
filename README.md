@@ -1,42 +1,40 @@
-# Lumen Photography Platform
+# Lumen Photography Platform - Documentation Structure
 
-Professional photo sharing platform for artistic photography. Instagram-like interface with real-time uploads, user authentication, and cloud storage.
+**Last Updated**: August 3, 2025
 
-## Current Status: Working Alpha
+## Documentation Organization
 
-**Live Features:**
-- Firebase Authentication (Email/Password)
-- Real photo uploads to Google Cloud Storage
-- Instagram-like dark mode interface
-- User profiles and photo galleries
-- Like system and interactions
+This project uses a prefix-based documentation system to maintain clear separation between technical implementation (Claude Code) and strategic planning (Claude Desktop).
 
-## Quick Access
+### Document Prefixes
 
-- **Web App**: http://100.106.201.33:8000/lumen-app.html
-- **API**: http://100.106.201.33:8080
-- **API Docs**: http://100.106.201.33:8080/docs
+- **CODE-** : Technical implementation documents for Claude Code
+- **STRATEGY-** : Business strategy and planning documents for Claude Desktop
 
-## Architecture
+### Documentation Files
 
-- **Backend**: FastAPI (Python 3.11) + Firebase Admin SDK
-- **Frontend**: Vanilla JavaScript + Firebase Client SDK
-- **Storage**: Google Cloud Storage
-- **Authentication**: Firebase Auth
-- **Database**: In-memory (Cloud SQL planned)
-- **Network**: Accessible via Tailscale
+#### Technical Implementation (Claude Code Territory)
+- `CLAUDE.md` - Instructions for Claude Code (root directory)
+- `docs/CODE-technical-implementation.md` - Complete technical specs, architecture, and implementation details
+- `docs/CODE-current-status.md` - Current development state, what's working, what needs fixing
+- `docs/CODE-api-reference.md` - API endpoints, request/response formats, authentication
 
-## Development
+#### Strategic Planning (Claude Desktop Territory)
+- `docs/STRATEGY-business-framework.md` - Business model, monetization, growth strategy
+- `docs/STRATEGY-content-policy.md` - Content moderation, artistic standards, platform philosophy
+- `docs/STRATEGY-user-acquisition.md` - Marketing, user growth, community building
 
-```bash
-# Start backend
-cd lumen-gcp/backend
-source venv/bin/activate
-nohup uvicorn app.main:app --reload --host 0.0.0.0 --port 8080 > server.log 2>&1 &
+### Project Access
 
-# Start frontend
-cd lumen-gcp/frontend
-python3 -m http.server 8000
-```
+- **Development Server**: http://100.106.201.33:8080 (API) via Tailscale
+- **Web Application**: http://100.106.201.33:8000/lumen-app.html
+- **API Documentation**: http://100.106.201.33:8080/docs
 
-**Status**: Alpha Development | **Last Updated**: July 31, 2025 | **Developer**: Carlos Irineu
+### Quick Start
+
+For development work, see `docs/CODE-technical-implementation.md`
+For business decisions, see `docs/STRATEGY-business-framework.md`
+
+### Archive
+
+Previous documentation versions are stored in `docs/archive/` with date stamps.

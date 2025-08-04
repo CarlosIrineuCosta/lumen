@@ -14,22 +14,22 @@ class LumenGallery {
         this.init();
     }
     
-    async init() {
-        // Check authentication first
-        await this.initAuth();
-        
-        // Initialize gallery if authenticated
-        if (this.user) {
-            this.setupGallery();
-            this.bindEvents();
-            this.loadPhotos();
-        } else {
+    init() {
+        // Check if Firebase is loaded
+        if (typeof firebase === 'undefined') {
+            console.error('Firebase not loaded');
             this.showAuthRequired();
+            return;
         }
+        
+        // Initialize authentication - this will handle the rest
+        this.initAuth();
     }
     
-    async initAuth() {
-        return new Promise((resolve) => {
+    initAuth() {
+        console.log('Initializing Firebase auth...');
+        
+        try {
             // Handle redirect result first
             firebase.auth().getRedirectResult().then((result) => {
                 if (result.user) {
@@ -38,10 +38,13 @@ class LumenGallery {
                 }
             }).catch((error) => {
                 console.error('Redirect result error:', error);
-                // Show error in auth page if needed
+                // Still show auth page if there's an error
+                this.showAuthRequired();
             });
             
             firebase.auth().onAuthStateChanged(async (user) => {
+                console.log('Auth state changed:', user ? 'User logged in' : 'User logged out');
+                
                 if (user) {
                     this.user = user;
                     try {
@@ -55,20 +58,20 @@ class LumenGallery {
                         this.bindEvents();
                         this.loadPhotos();
                         
-                        resolve();
                     } catch (error) {
                         console.error('Auth token error:', error);
                         this.showAuthRequired();
-                        resolve();
                     }
                 } else {
                     this.user = null;
                     this.authToken = null;
                     this.showAuthRequired();
-                    resolve();
                 }
             });
-        });
+        } catch (error) {
+            console.error('Firebase init error:', error);
+            this.showAuthRequired();
+        }
     }
     
     async syncUserProfile() {
@@ -190,7 +193,34 @@ class LumenGallery {
                     <div class="user-actions">
                         <button class="btn-upload">Upload</button>
                         <div class="user-menu">
-                            <img src="https://via.placeholder.com/40" alt="User" class="user-avatar">
+                            <img src="https://via.placeholder.com/40" alt="User" class="user-avatar" id="user-avatar">
+                            <div class="user-dropdown" id="user-dropdown">
+                                <div class="dropdown-header">
+                                    <img src="https://via.placeholder.com/50" alt="User" class="dropdown-avatar">
+                                    <div class="dropdown-user-info">
+                                        <div class="dropdown-name">Loading...</div>
+                                        <div class="dropdown-email">Loading...</div>
+                                    </div>
+                                </div>
+                                <div class="dropdown-divider"></div>
+                                <a href="#" class="dropdown-item" id="menu-profile">
+                                    <span class="dropdown-icon">👤</span>
+                                    Edit Profile
+                                </a>
+                                <a href="#" class="dropdown-item" id="menu-uploads">
+                                    <span class="dropdown-icon">📸</span>
+                                    My Uploads
+                                </a>
+                                <a href="#" class="dropdown-item" id="menu-settings">
+                                    <span class="dropdown-icon">⚙️</span>
+                                    Settings
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a href="#" class="dropdown-item" id="menu-logout">
+                                    <span class="dropdown-icon">🚪</span>
+                                    Sign Out
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -249,13 +279,25 @@ class LumenGallery {
     }
     
     updateUserUI(profile) {
+        const photoUrl = this.user?.photoURL || profile?.profile_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(this.user?.displayName || this.user?.email || 'User')}&background=4a90e2&color=fff`;
+        const displayName = this.user?.displayName || profile?.display_name || 'User';
+        const email = this.user?.email || 'No email';
+        
+        // Update header avatar
         const userAvatar = document.querySelector('.user-avatar');
         if (userAvatar) {
-            // Use Firebase user photo if available, fallback to profile photo or default
-            const photoUrl = this.user?.photoURL || profile?.profile_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(this.user?.displayName || this.user?.email || 'User')}&background=4a90e2&color=fff`;
             userAvatar.src = photoUrl;
-            userAvatar.alt = this.user?.displayName || this.user?.email || 'User';
+            userAvatar.alt = displayName;
         }
+        
+        // Update dropdown header
+        const dropdownAvatar = document.querySelector('.dropdown-avatar');
+        const dropdownName = document.querySelector('.dropdown-name');
+        const dropdownEmail = document.querySelector('.dropdown-email');
+        
+        if (dropdownAvatar) dropdownAvatar.src = photoUrl;
+        if (dropdownName) dropdownName.textContent = displayName;
+        if (dropdownEmail) dropdownEmail.textContent = email;
     }
     
     setupGallery() {
@@ -304,6 +346,41 @@ class LumenGallery {
             if (e.key === 'Escape') {
                 this.closeLightbox();
             }
+        });
+        
+        // User menu dropdown
+        $(document).on('click', '#user-avatar', (e) => {
+            e.stopPropagation();
+            $('#user-dropdown').toggleClass('active');
+        });
+        
+        // Close dropdown when clicking outside
+        $(document).on('click', (e) => {
+            if (!$(e.target).closest('.user-menu').length) {
+                $('#user-dropdown').removeClass('active');
+            }
+        });
+        
+        // Menu item handlers
+        $(document).on('click', '#menu-logout', (e) => {
+            e.preventDefault();
+            this.handleLogout();
+        });
+        
+        $(document).on('click', '#menu-profile', (e) => {
+            e.preventDefault();
+            this.showProfileEditor();
+        });
+        
+        $(document).on('click', '#menu-uploads', (e) => {
+            e.preventDefault();
+            this.showUserUploads();
+        });
+        
+        // Upload button
+        $(document).on('click', '.btn-upload', (e) => {
+            e.preventDefault();
+            this.showUploadDialog();
         });
     }
     switchMode(mode) {
@@ -519,6 +596,667 @@ class LumenGallery {
     closeLightbox() {
         $('#lightbox').removeClass('active');
         $('body').css('overflow', 'auto');
+    }
+    
+    async handleLogout() {
+        try {
+            await firebase.auth().signOut();
+            // The onAuthStateChanged handler will take care of showing the auth screen
+        } catch (error) {
+            console.error('Logout error:', error);
+            alert('Error signing out. Please try again.');
+        }
+    }
+    
+    showProfileEditor() {
+        $('#user-dropdown').removeClass('active');
+        
+        const profileHtml = `
+            <div class="modal-overlay" id="profile-modal">
+                <div class="modal-content profile-editor">
+                    <div class="modal-header">
+                        <h2>Edit Profile</h2>
+                        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="profile-form" class="profile-form">
+                            <div class="form-group">
+                                <label for="display_name">Display Name</label>
+                                <input type="text" id="display_name" name="display_name" placeholder="Your name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="bio">Bio</label>
+                                <textarea id="bio" name="bio" placeholder="Tell us about yourself..." rows="3"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="city">City</label>
+                                <input type="text" id="city" name="city" placeholder="Your city">
+                            </div>
+                            <div class="form-group">
+                                <label for="user_type">I am a...</label>
+                                <select id="user_type" name="user_type" required>
+                                    <option value="">Select type</option>
+                                    <option value="photographer">Photographer</option>
+                                    <option value="model">Model</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="model-fields" style="display: none;">
+                                <h3>Model Information</h3>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="gender">Gender</label>
+                                        <select id="gender" name="gender">
+                                            <option value="">Select gender</option>
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option>
+                                            <option value="Non-binary">Non-binary</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="age">Age</label>
+                                        <input type="number" id="age" name="age" min="16" max="80">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="height_cm">Height (cm)</label>
+                                        <input type="number" id="height_cm" name="height_cm" min="120" max="220">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="weight_kg">Weight (kg)</label>
+                                        <input type="number" id="weight_kg" name="weight_kg" min="30" max="200">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="btn-secondary" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+                                <button type="submit" class="btn-primary">Save Profile</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        $('body').append(profileHtml);
+        
+        // Show/hide model fields based on user type
+        $('#user_type').on('change', function() {
+            if ($(this).val() === 'model') {
+                $('#model-fields').show();
+            } else {
+                $('#model-fields').hide();
+            }
+        });
+        
+        // Handle form submission
+        $('#profile-form').on('submit', (e) => {
+            e.preventDefault();
+            this.saveProfile();
+        });
+    }
+    
+    async saveProfile() {
+        const formData = new FormData(document.getElementById('profile-form'));
+        const profileData = Object.fromEntries(formData.entries());
+        
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${this.authToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(profileData)
+            });
+            
+            if (response.ok) {
+                const updatedProfile = await response.json();
+                this.updateUserUI(updatedProfile);
+                $('#profile-modal').remove();
+                alert('Profile updated successfully!');
+            } else {
+                throw new Error('Failed to save profile');
+            }
+        } catch (error) {
+            console.error('Profile save error:', error);
+            alert('Error saving profile. Please try again.');
+        }
+    }
+    
+    async showUserUploads() {
+        $('#user-dropdown').removeClass('active');
+        
+        const uploadsHtml = `
+            <div class="modal-overlay" id="uploads-modal">
+                <div class="modal-content uploads-view">
+                    <div class="modal-header">
+                        <h2>My Uploads</h2>
+                        <button class="modal-close" onclick="document.getElementById('uploads-modal').remove()">&times;</button>
+                    </div>
+                    
+                    <div class="uploads-container">
+                        <div class="uploads-header">
+                            <div class="uploads-stats" id="uploads-stats">
+                                <span class="stat-item">
+                                    <strong id="total-photos">0</strong>
+                                    <span>Photos</span>
+                                </span>
+                                <span class="stat-item">
+                                    <strong id="total-views">0</strong>
+                                    <span>Views</span>
+                                </span>
+                                <span class="stat-item">
+                                    <strong>0</strong>
+                                    <span>Likes</span>
+                                </span>
+                            </div>
+                            <div class="uploads-actions">
+                                <button class="btn-secondary" onclick="window.location.reload()">Refresh</button>
+                                <button class="btn-primary" onclick="document.getElementById('uploads-modal').remove(); $('.btn-upload').click();">Upload New</button>
+                            </div>
+                        </div>
+                        
+                        <div class="uploads-grid" id="user-uploads-grid">
+                            <div class="loading-spinner active" id="uploads-loading">
+                                <div class="spinner"></div>
+                                <p>Loading your photos...</p>
+                            </div>
+                        </div>
+                        
+                        <div class="uploads-empty" id="uploads-empty" style="display: none;">
+                            <div class="empty-state">
+                                <div class="empty-icon">📸</div>
+                                <h3>No photos yet</h3>
+                                <p>Start building your portfolio by uploading your first photo</p>
+                                <button class="btn-primary" onclick="document.getElementById('uploads-modal').remove(); $('.btn-upload').click();">Upload Photo</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        $('body').append(uploadsHtml);
+        await this.loadUserPhotos();
+    }
+    
+    async loadUserPhotos() {
+        try {
+            const user = firebase.auth().currentUser;
+            if (!user) {
+                this.showUploadError('Please sign in to view your uploads');
+                return;
+            }
+            
+            const idToken = await user.getIdToken();
+            const response = await fetch(`${API_BASE_URL}/photos/user`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${idToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                this.renderUserPhotos(data.photos || []);
+            } else {
+                console.error('Failed to load user photos:', response.status);
+                this.showEmptyUploads();
+            }
+        } catch (error) {
+            console.error('Error loading user photos:', error);
+            this.showEmptyUploads();
+        } finally {
+            $('#uploads-loading').removeClass('active');
+        }
+    }
+    
+    renderUserPhotos(photos) {
+        if (!photos || photos.length === 0) {
+            this.showEmptyUploads();
+            return;
+        }
+        
+        // Update stats
+        $('#total-photos').text(photos.length);
+        $('#total-views').text(photos.reduce((sum, photo) => sum + (photo.views || 0), 0));
+        
+        const $grid = $('#user-uploads-grid');
+        $grid.empty();
+        
+        photos.forEach(photo => {
+            const $item = this.createUserPhotoElement(photo);
+            $grid.append($item);
+        });
+    }
+    
+    createUserPhotoElement(photo) {
+        const uploadDate = new Date(photo.created_at).toLocaleDateString();
+        
+        const $item = $(`
+            <div class="user-photo-item" data-photo-id="${photo.id}">
+                <div class="user-photo-image">
+                    <img src="${photo.thumbnail_url || photo.storage_url}" alt="${photo.title}">
+                    <div class="user-photo-overlay">
+                        <button class="btn-icon" onclick="window.open('${photo.storage_url}', '_blank')" title="View Full Size">
+                            <span>🔍</span>
+                        </button>
+                        <button class="btn-icon delete-photo" data-photo-id="${photo.id}" title="Delete Photo">
+                            <span>🗑️</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="user-photo-info">
+                    <h4>${photo.title || 'Untitled'}</h4>
+                    <p class="photo-date">Uploaded ${uploadDate}</p>
+                    <div class="photo-stats">
+                        <span class="stat">${photo.views || 0} views</span>
+                        <span class="stat">${photo.likes || 0} likes</span>
+                    </div>
+                </div>
+            </div>
+        `);
+        
+        // Add delete handler
+        $item.find('.delete-photo').on('click', (e) => {
+            e.stopPropagation();
+            this.deleteUserPhoto(photo.id);
+        });
+        
+        return $item;
+    }
+    
+    showEmptyUploads() {
+        $('#user-uploads-grid').hide();
+        $('#uploads-empty').show();
+        $('#total-photos').text('0');
+        $('#total-views').text('0');
+    }
+    
+    async deleteUserPhoto(photoId) {
+        if (!confirm('Are you sure you want to delete this photo? This action cannot be undone.')) {
+            return;
+        }
+        
+        try {
+            const user = firebase.auth().currentUser;
+            if (!user) {
+                this.showNotification('Please sign in to delete photos', 'error');
+                return;
+            }
+            
+            const idToken = await user.getIdToken();
+            const response = await fetch(`${API_BASE_URL}/photos/${photoId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${idToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                // Remove from UI
+                $(`.user-photo-item[data-photo-id="${photoId}"]`).fadeOut(300, function() {
+                    $(this).remove();
+                    
+                    // Check if any photos remain
+                    if ($('#user-uploads-grid .user-photo-item').length === 0) {
+                        $('#uploads-empty').show();
+                        $('#user-uploads-grid').hide();
+                    }
+                    
+                    // Update stats
+                    const remainingPhotos = $('#user-uploads-grid .user-photo-item').length;
+                    $('#total-photos').text(remainingPhotos);
+                });
+                
+                this.showNotification('Photo deleted successfully', 'success');
+            } else {
+                const errorData = await response.json();
+                this.showNotification('Failed to delete photo: ' + (errorData.detail || 'Unknown error'), 'error');
+            }
+        } catch (error) {
+            console.error('Error deleting photo:', error);
+            this.showNotification('Error deleting photo: ' + error.message, 'error');
+        }
+    }
+    
+    showUploadDialog() {
+        const uploadHtml = `
+            <div class="modal-overlay" id="upload-modal">
+                <div class="modal-content upload-dialog">
+                    <div class="modal-header">
+                        <h2>Upload Photo</h2>
+                        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- File Upload Area -->
+                        <div class="upload-zone" id="upload-zone">
+                            <div class="upload-zone-content">
+                                <div class="upload-icon">📸</div>
+                                <h3>Drag & drop your photo here</h3>
+                                <p>or click to browse files</p>
+                                <div class="upload-specs">
+                                    <small>Supports: JPG, PNG, WEBP • Max size: 10MB • Min resolution: 800x600</small>
+                                </div>
+                                <input type="file" id="file-input" accept="image/jpeg,image/jpg,image/png,image/webp" style="display: none;">
+                            </div>
+                        </div>
+                        
+                        <!-- Upload Progress -->
+                        <div class="upload-progress" id="upload-progress" style="display: none;">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progress-fill"></div>
+                            </div>
+                            <div class="progress-text">
+                                <span id="progress-percentage">0%</span>
+                                <span id="progress-status">Preparing upload...</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Image Preview & Metadata (initially hidden) -->
+                        <div class="upload-preview" id="upload-preview" style="display: none;">
+                            <div class="preview-image-container">
+                                <img id="preview-image" src="" alt="Preview">
+                                <div class="image-info">
+                                    <span id="image-filename"></span>
+                                    <span id="image-size"></span>
+                                    <span id="image-dimensions"></span>
+                                </div>
+                            </div>
+                            
+                            <div class="upload-metadata">
+                                <form id="upload-form" class="upload-form">
+                                    <div class="form-group">
+                                        <label for="photo-title">Title</label>
+                                        <input type="text" id="photo-title" name="title" placeholder="Give your photo a title..." required>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="photo-description">Description</label>
+                                        <textarea id="photo-description" name="description" placeholder="Tell the story behind this photo..." rows="3"></textarea>
+                                    </div>
+                                    
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="photo-location">Location</label>
+                                            <input type="text" id="photo-location" name="location" placeholder="Where was this taken?">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="content-rating">Content Rating</label>
+                                            <select id="content-rating" name="content_rating">
+                                                <option value="general">General</option>
+                                                <option value="artistic_nude">Artistic Nude</option>
+                                                <option value="mature">Mature</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="photo-tags">Tags</label>
+                                        <input type="text" id="photo-tags" name="tags" placeholder="portrait, studio, fashion, natural light..." title="Separate tags with commas">
+                                        <small>Separate tags with commas</small>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" id="portfolio-piece" name="is_portfolio">
+                                            <span class="checkmark"></span>
+                                            Add to portfolio (featured work)
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="form-actions">
+                                        <button type="button" class="btn-secondary" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+                                        <button type="submit" class="btn-primary" id="upload-btn">
+                                            <span class="btn-text">Upload Photo</span>
+                                            <span class="btn-spinner" style="display: none;">⏳</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <!-- Error Display -->
+                        <div class="upload-error" id="upload-error" style="display: none;">
+                            <div class="error-icon">❌</div>
+                            <div class="error-message" id="error-message"></div>
+                            <button class="btn-secondary" onclick="document.getElementById('upload-error').style.display='none'; document.getElementById('upload-zone').style.display='block';">Try Again</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        $('body').append(uploadHtml);
+        this.initializeUploadHandlers();
+    }
+    
+    initializeUploadHandlers() {
+        const uploadZone = document.getElementById('upload-zone');
+        const fileInput = document.getElementById('file-input');
+        
+        // Click to browse
+        uploadZone.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        // File selection
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                this.handleFileSelection(file);
+            }
+        });
+        
+        // Drag and drop
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('drag-over');
+        });
+        
+        uploadZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('drag-over');
+        });
+        
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('drag-over');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                this.handleFileSelection(files[0]);
+            }
+        });
+        
+        // Form submission
+        document.getElementById('upload-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.handlePhotoUpload();
+        });
+    }
+    
+    handleFileSelection(file) {
+        // Validate file
+        const validation = this.validateImageFile(file);
+        if (!validation.valid) {
+            this.showUploadError(validation.error);
+            return;
+        }
+        
+        // Show preview
+        this.showImagePreview(file);
+    }
+    
+    validateImageFile(file) {
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+        
+        if (!allowedTypes.includes(file.type)) {
+            return { valid: false, error: 'Please select a valid image file (JPG, PNG, or WEBP)' };
+        }
+        
+        if (file.size > maxSize) {
+            return { valid: false, error: 'File size must be less than 10MB' };
+        }
+        
+        return { valid: true };
+    }
+    
+    showImagePreview(file) {
+        const reader = new FileReader();
+        
+        reader.onload = (e) => {
+            // Hide upload zone, show preview
+            document.getElementById('upload-zone').style.display = 'none';
+            document.getElementById('upload-preview').style.display = 'block';
+            
+            // Set preview image
+            const previewImg = document.getElementById('preview-image');
+            previewImg.src = e.target.result;
+            
+            // Set file info
+            document.getElementById('image-filename').textContent = file.name;
+            document.getElementById('image-size').textContent = this.formatFileSize(file.size);
+            
+            // Get image dimensions
+            previewImg.onload = () => {
+                document.getElementById('image-dimensions').textContent = `${previewImg.naturalWidth} × ${previewImg.naturalHeight}`;
+            };
+            
+            // Store file for upload
+            this.selectedFile = file;
+        };
+        
+        reader.readAsDataURL(file);
+    }
+    
+    showUploadError(message) {
+        document.getElementById('upload-zone').style.display = 'none';
+        document.getElementById('upload-error').style.display = 'block';
+        document.getElementById('error-message').textContent = message;
+    }
+    
+    formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    async handlePhotoUpload() {
+        try {
+            const uploadBtn = document.getElementById('upload-btn');
+            const progressDiv = document.getElementById('upload-progress');
+            const previewDiv = document.getElementById('upload-preview');
+            const errorDiv = document.getElementById('upload-error');
+            
+            // Show upload progress
+            previewDiv.style.display = 'none';
+            progressDiv.style.display = 'block';
+            
+            // Get form data
+            const form = document.getElementById('upload-form');
+            const formData = new FormData(form);
+            
+            // Get the selected file
+            if (!this.selectedFile) {
+                this.showUploadError('No file selected');
+                return;
+            }
+            
+            // ARCHITECTURE: Option A - Backend Handles Storage Upload
+            // Flow: Frontend → Backend (with file) → Backend uploads to Firebase Storage → Database
+            // Benefits: Better security, backend controls permissions, simpler error handling
+            
+            document.getElementById('progress-status').textContent = 'Uploading photo...';
+            
+            // Get current user for authentication
+            const user = firebase.auth().currentUser;
+            if (!user) {
+                this.showUploadError('Please sign in to upload photos');
+                return;
+            }
+            
+            // Get Firebase auth token for backend authentication
+            const idToken = await user.getIdToken();
+            
+            // Prepare multipart form data matching backend API expectations
+            const uploadFormData = new FormData();
+            uploadFormData.append('file', this.selectedFile);  // Actual file for backend to upload
+            uploadFormData.append('title', formData.get('title') || 'Untitled');
+            uploadFormData.append('description', formData.get('description') || '');
+            uploadFormData.append('camera', formData.get('camera') || '');
+            uploadFormData.append('lens', formData.get('lens') || '');
+            uploadFormData.append('settings', formData.get('settings') || '');
+            uploadFormData.append('location', formData.get('location') || '');
+            if (formData.get('tags')) {
+                uploadFormData.append('tags', formData.get('tags'));
+            }
+            
+            // Send everything to backend - backend will handle Firebase Storage upload
+            const response = await fetch(`${API_BASE_URL}/photos/upload`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${idToken}`
+                    // Note: No Content-Type header - browser sets multipart boundary automatically
+                },
+                body: uploadFormData
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Failed to upload photo');
+            }
+            
+            const result = await response.json();
+            
+            // Success - close modal and refresh gallery
+            document.getElementById('upload-modal').remove();
+            this.showNotification('Photo uploaded successfully!', 'success');
+            this.loadPhotos();  // Refresh gallery to show new photo
+            
+        } catch (error) {
+            console.error('Upload process error:', error);
+            this.showUploadError('Upload failed: ' + error.message);
+        }
+    }
+    
+    showNotification(message, type = 'info') {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.innerHTML = `
+            <div class="notification-content">
+                <span class="notification-message">${message}</span>
+                <button class="notification-close">&times;</button>
+            </div>
+        `;
+        
+        // Add to body
+        document.body.appendChild(notification);
+        
+        // Auto-remove after 4 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 4000);
+        
+        // Close button handler
+        notification.querySelector('.notification-close').addEventListener('click', () => {
+            notification.remove();
+        });
+        
+        // Animate in
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 100);
     }
 }
 
