@@ -66,23 +66,6 @@ async def health_check():
         "environment": os.getenv("ENVIRONMENT", "development")
     }
 
-@app.get("/api/v1/photos")
-async def list_photos():
-    """List photos with pagination"""
-    return {
-        "photos": [],
-        "total": 0,
-        "page": 1,
-        "per_page": 20
-    }
-
-@app.post("/api/v1/photos")
-async def upload_photo():
-    """Upload a new photo"""
-    return {
-        "message": "Photo upload endpoint - to be implemented",
-        "status": "not_implemented"
-    }
 
 if __name__ == "__main__":
     import uvicorn

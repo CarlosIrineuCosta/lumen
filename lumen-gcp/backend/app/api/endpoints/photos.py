@@ -11,9 +11,23 @@ from ...models.photo import (
     UpdatePhotoRequest, PhotoSearchQuery
 )
 from ...services.photo_service import PhotoService
+from ...services.location_service import LocationService
 from ...database.connection import get_db
 
 router = APIRouter()
+
+@router.get("/recent", response_model=PhotoListResponse)
+async def get_recent_photos(
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db)
+):
+    """Get recent public photos - main feed endpoint"""
+    try:
+        photo_service = PhotoService(db)
+        return await photo_service.get_public_photos(page=page, limit=limit)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get recent photos: {str(e)}")
 
 @router.get("/", response_model=PhotoListResponse)
 async def list_photos(
@@ -36,6 +50,10 @@ async def upload_photo(
     user_tags: Optional[str] = Form(None),  # Comma-separated tags
     city_id: Optional[int] = Form(None),
     location_name: Optional[str] = Form(None),
+    camera: Optional[str] = Form(None),  # Camera make/model
+    lens: Optional[str] = Form(None),    # Lens description  
+    settings: Optional[str] = Form(None), # Camera settings
+    location: Optional[str] = Form(None), # Location string for city lookup
     is_collaborative: bool = Form(False),
     model_release_status: str = Form("none"),
     content_rating: str = Form("general"),
@@ -60,19 +78,35 @@ async def upload_photo(
         if user_tags:
             tag_list = [tag.strip() for tag in user_tags.split(',') if tag.strip()]
         
+        # Structure camera data
+        camera_data = {}
+        if camera:
+            camera_data['camera'] = camera
+        if lens:
+            camera_data['lens'] = lens  
+        if settings:
+            camera_data['settings'] = settings
+        
+        # Resolve location string to city_id if provided
+        resolved_city_id = city_id  # Use explicit city_id if provided
+        if location and not city_id:
+            location_service = LocationService(db)
+            resolved_city_id = location_service.resolve_city(location)
+        
         # Create request object with image_url (will be set by service)
         request = CreatePhotoRequest(
             title=title,
             description=description,
             image_url="",  # Will be set by service after upload
             user_tags=tag_list,
-            city_id=city_id,
+            city_id=resolved_city_id,
             location_name=location_name,
             is_collaborative=is_collaborative,
             model_release_status=model_release_status,
             content_rating=content_rating,
             is_public=is_public,
-            is_portfolio=is_portfolio
+            is_portfolio=is_portfolio,
+            camera_data=camera_data if camera_data else None
         )
         
         # Upload photo
@@ -90,6 +124,29 @@ async def upload_photo(
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+
+@router.get("/user", response_model=PhotoListResponse)
+async def get_current_user_photos(
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    user_token: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get current user's photos - /user endpoint"""
+    firebase_user = AuthUser(user_token)
+    
+    # Get PostgreSQL user UUID for this Firebase user
+    photo_service = PhotoService(db)
+    try:
+        user_uuid = await photo_service.get_or_create_user_uuid(firebase_user)
+        return await photo_service.get_user_photos(
+            user_id=str(user_uuid),
+            viewer_user_id=str(user_uuid),
+            page=page,
+            limit=limit
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get user photos: {str(e)}")
 
 @router.get("/my-photos", response_model=PhotoListResponse)
 async def get_my_photos(

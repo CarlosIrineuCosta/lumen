@@ -22,8 +22,7 @@ class Photo(Base):
     # Core photo data
     title = Column(String(200))
     description = Column(Text)
-    image_url = Column(String(500), nullable=False)
-    thumbnail_url = Column(String(500))
+    # NOTE: image_url and thumbnail_url generated dynamically from id + user_id
 
     # Location (optional)
     city_id = Column(Integer, ForeignKey("cities.id"))
@@ -42,7 +41,7 @@ class Photo(Base):
     model_release_status = Column(String(20), default='none')  # none, verbal, signed
 
     # Flexible expansion for future features
-    extra_data = Column(JSONB, default={})  # Any future photo-related data
+    extra_metadata = Column(JSONB, default={})  # Any future photo-related data
 
     # Visibility and status
     is_public = Column(Boolean, default=True)

@@ -14,7 +14,9 @@
       "Bash(gsutil ls:*)",
       "mcp__sequential-thinking__sequential_thinking",
       "mcp__zen-server__planner",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "mcp__zen-server__chat",
+      "mcp__zen-server__thinkdeep"
     ],
     "deny": []
   }

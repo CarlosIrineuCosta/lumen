@@ -115,7 +115,7 @@ CREATE TABLE photos (
     model_release_status VARCHAR(20) DEFAULT 'none', -- none, verbal, signed
     
     -- Flexible expansion
-    metadata JSONB DEFAULT '{}', -- Any future photo-related data
+    extra_metadata JSONB DEFAULT '{}', -- Any future photo-related data
     
     -- Visibility and status
     is_public BOOLEAN DEFAULT true,

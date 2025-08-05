@@ -15,6 +15,10 @@ class LumenGallery {
     }
     
     init() {
+        console.log('LumenGallery initializing...');
+        console.log('Masonry available:', typeof Masonry !== 'undefined');
+        console.log('imagesLoaded available:', typeof imagesLoaded !== 'undefined');
+        
         // Check if Firebase is loaded
         if (typeof firebase === 'undefined') {
             console.error('Firebase not loaded');
@@ -396,8 +400,12 @@ class LumenGallery {
         this.photos = [];
         this.hasMore = true;
         
-        // Clear gallery
-        $('#photo-grid').empty();
+        // Clear gallery and reset masonry properly
+        if (this.masonry) {
+            this.masonry.destroy();
+        }
+        $('#photo-grid').empty().append('<div class="masonry-grid-sizer"></div>');
+        this.setupGallery();
         
         // Load new content
         this.loadPhotos();
@@ -527,33 +535,96 @@ class LumenGallery {
         return photos;
     }
     renderPhotos(photos) {
-        photos.forEach(photo => {
+        console.log('renderPhotos called with', photos.length, 'photos');
+        console.log('Masonry instance:', this.masonry);
+        
+        if (!this.masonry) {
+            console.error('Masonry not initialized');
+            return;
+        }
+        
+        const container = document.querySelector('#photo-grid');
+        console.log('Container found:', !!container);
+        
+        const newElements = [];
+        
+        photos.forEach((photo, index) => {
+            console.log(`Creating photo element ${index + 1}:`, photo.title);
             const $item = this.createPhotoElement(photo);
-            $('#photo-grid').append($item);
+            container.appendChild($item[0]); // Append DOM element, not jQuery object
+            newElements.push($item[0]);
         });
         
-        // Re-justify the gallery
-        $('#photo-grid').justifiedGallery('norewind');
+        console.log('Added', newElements.length, 'new elements to DOM');
+        
+        // Wait for images to load, then layout
+        if (typeof imagesLoaded !== 'undefined' && newElements.length > 0) {
+            console.log('Using imagesLoaded for layout...');
+            imagesLoaded(newElements, () => {
+                console.log('Images loaded, applying masonry layout...');
+                this.masonry.appended(newElements);
+                this.masonry.layout();
+                $('#photo-grid').addClass('loaded');
+                console.log('Masonry layout updated with', newElements.length, 'new items');
+            });
+        } else {
+            console.log('Using fallback timeout for layout...');
+            // Fallback if imagesLoaded not available
+            setTimeout(() => {
+                this.masonry.layout();
+                $('#photo-grid').addClass('loaded');
+                console.log('Fallback layout applied');
+            }, 100);
+        }
     }
     
     createPhotoElement(photo) {
+        // Handle both mock data format and real API format
+        const imageUrl = photo.image_url || photo.url;
+        const thumbnailUrl = photo.thumbnail_url || photo.thumbnail || imageUrl;
+        const photographerName = photo.photographer_name || photo.photographer?.name || 'Unknown Photographer';
+        const location = photo.location_display || photo.photographer?.location || 'Unknown Location';
+        const photoTitle = photo.title || 'Untitled';
+        
         const $link = $('<a>', {
-            href: photo.url,
-            class: 'gallery-item'
+            href: imageUrl,
+            class: 'masonry-item gallery-item',
+            'data-photo-id': photo.id
         }).data('photo', photo);
         
+        // Create skeleton loader first
+        const $skeleton = $('<div>', { class: 'photo-skeleton' });
+        $link.append($skeleton);
+        
+        // Create image with loading handling
         const $img = $('<img>', {
-            src: photo.thumbnail,
-            alt: `Photo by ${photo.photographer.name}`
+            alt: `${photoTitle} by ${photographerName}`,
+            class: 'gallery-image'
         });
+        
+        // Show skeleton while loading, then fade in image
+        $img.on('load', () => {
+            $skeleton.fadeOut(200, () => {
+                $img.fadeIn(300);
+            });
+        }).on('error', () => {
+            $skeleton.html('<div class="photo-error">Image failed to load</div>');
+        });
+        
+        // Set source after event handlers are attached
+        $img.attr('src', thumbnailUrl);
         
         const $overlay = $('<div>', { class: 'photo-overlay' });
         const $photographerInfo = $(`
             <div class="overlay-photographer">
-                <img src="${photo.photographer.avatar}" alt="${photo.photographer.name}" class="overlay-avatar">
                 <div class="overlay-info">
-                    <h4>${photo.photographer.name}</h4>
-                    <p>${photo.photographer.location}</p>
+                    <h4 class="photo-title">${photoTitle}</h4>
+                    <p class="photographer-name">${photographerName}</p>
+                    <p class="photo-location">${location}</p>
+                    ${photo.user_tags && photo.user_tags.length > 0 ? 
+                        `<div class="photo-tags">${photo.user_tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>` : 
+                        ''
+                    }
                 </div>
             </div>
         `);
@@ -1196,7 +1267,7 @@ class LumenGallery {
             uploadFormData.append('settings', formData.get('settings') || '');
             uploadFormData.append('location', formData.get('location') || '');
             if (formData.get('tags')) {
-                uploadFormData.append('tags', formData.get('tags'));
+                uploadFormData.append('user_tags', formData.get('tags'));
             }
             
             // Send everything to backend - backend will handle Firebase Storage upload
@@ -1219,7 +1290,19 @@ class LumenGallery {
             // Success - close modal and refresh gallery
             document.getElementById('upload-modal').remove();
             this.showNotification('Photo uploaded successfully!', 'success');
-            this.loadPhotos();  // Refresh gallery to show new photo
+            
+            // Reset gallery state and refresh completely
+            this.page = 1;
+            this.photos = [];
+            this.hasMore = true;
+            
+            // Clear gallery and reload with masonry reset
+            if (this.masonry) {
+                this.masonry.destroy();
+            }
+            $('#photo-grid').empty().append('<div class="masonry-grid-sizer"></div>');
+            this.setupGallery();
+            this.loadPhotos();
             
         } catch (error) {
             console.error('Upload process error:', error);
