@@ -11,7 +11,10 @@
       "mcp__serena__find_file",
       "mcp__serena__write_memory",
       "Bash(ls:*)",
-      "Bash(gsutil ls:*)"
+      "Bash(gsutil ls:*)",
+      "mcp__sequential-thinking__sequential_thinking",
+      "mcp__zen-server__planner",
+      "Bash(git add:*)"
     ],
     "deny": []
   }
