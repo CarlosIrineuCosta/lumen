@@ -16,7 +16,9 @@
       "mcp__zen-server__planner",
       "Bash(git add:*)",
       "mcp__zen-server__chat",
-      "mcp__zen-server__thinkdeep"
+      "mcp__zen-server__thinkdeep",
+      "Bash(find:*)",
+      "Bash(git commit:*)"
     ],
     "deny": []
   }

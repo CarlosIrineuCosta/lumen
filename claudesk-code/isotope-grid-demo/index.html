@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumen - Isotope Grid Demo</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    
+    <!-- jQuery (required for Isotope) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Isotope from your local files -->
+    <script src="../references/isotope-docs/isotope.pkgd.min.js"></script>
+    
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #0a0a0a;
+            color: #ffffff;
+            line-height: 1.6;
+        }
+        
+        /* Header for context */
+        .header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #333;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 2rem;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            color: #999;
+            font-size: 0.9rem;
+        }
+        
+        /* Grid container */
+        .grid-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Isotope grid */
+        .photo-grid {
+            margin: 0 -10px; /* Negative margin to offset item margins */
+        }
+        
+        /* Grid items */
+        .grid-item {
+            width: 320px; /* Base width - Isotope will handle the layout */
+            margin: 10px;
+            background: #1a1a1a;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .grid-item:hover {
+            transform: translateY(-5px);
+        }
+        
+        /* Image styles */
+        .grid-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+            object-fit: cover;
+        }
+        
+        /* Photo info overlay */
+        .photo-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            padding: 30px 15px 15px;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .grid-item:hover .photo-info {
+            opacity: 1;
+        }
+        
+        .photographer-name {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+        
+        .photo-location {
+            font-size: 0.8rem;
+            color: #ccc;
+        }
+        
+        /* Different sizes for variety - mimicking real photography aspect ratios */
+        .grid-item.wide {
+            width: 480px; /* 3:2 aspect ratio photos get more width */
+        }
+        
+        .grid-item.tall {
+            width: 320px; /* Portrait photos stay narrow */
+        }
+        
+        .grid-item.square {
+            width: 320px; /* Square photos */
+        }
+        
+        /* Loading indicator */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .grid-item,
+            .grid-item.wide,
+            .grid-item.tall,
+            .grid-item.square {
+                width: calc(100vw - 40px);
+                margin: 10px;
+            }
+            
+            .photo-grid {
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>LUMEN</h1>
+        <p>Professional Photography Grid - Isotope Implementation Demo</p>
+    </div>
+    
+    <div class="grid-container">
+        <div class="photo-grid" id="photo-grid">
+            <!-- Photos will be loaded here -->
+        </div>
+        
+        <div class="loading" id="loading">
+            Loading photography grid...
+        </div>
+    </div>
+    
+    <script>
+        // Sample photo data with realistic photography dimensions
+        const samplePhotos = [

@@ -35,6 +35,56 @@ Lumen - Professional photography platform with real photo uploads, Firebase auth
 
 **CURRENT FOCUS**: Frontend UI improvements while performance issue is resolved externally
 
+## CRITICAL AUTHENTICATION ARCHITECTURE - READ THIS FIRST
+
+### Dual-Layer Authentication System
+Lumen uses a **secure dual-layer authentication system** that Claude Code must understand:
+
+#### Layer 1: User Authentication (gcloud auth) 
+- **PRIMARY**: Users authenticate via `gcloud auth login carlos.irineu@gmail.com`
+- **SAFER**: Personal Google account authentication - secure, ready, mostly invulnerable
+- **DIRECT**: Direct connection to Google Cloud services using personal credentials
+- **PURPOSE**: Provides secure access to Cloud SQL, Cloud Storage, and other GCP services
+
+#### Layer 2: Service Account (firebase_service_account.json)
+- **SECONDARY**: Service account for application-level operations  
+- **PURPOSE**: Handles Firebase Admin SDK operations, background tasks
+- **SCOPE**: Limited permissions, acts as application identity
+- **COMPLEMENTARY**: Works alongside personal authentication, not instead of it
+
+### User Identity Flow
+```
+Google OAuth → Firebase UID → Lumen User ID → Database Record
+     ↓              ↓              ↓              ↓
+Personal Auth → Firebase Token → User Profile → Photos/Data
+```
+
+### Key Points for Claude Code:
+1. **NEVER assume service account handles everything** - Personal `gcloud auth` is primary
+2. **User IDs are transferred from Google** and linked to usernames/user IDs in database
+3. **Firebase UID** is the bridge between Google identity and Lumen user records
+4. **Cloud SQL access** uses personal authentication, NOT service account
+5. **Photo uploads** use personal Google Cloud Storage access
+
+### Database Connection Priority:
+1. **First**: Try personal `gcloud auth` credentials (recommended)
+2. **Second**: Fall back to service account if needed
+3. **Never**: Mix authentication methods in same operation
+
+### Troubleshooting Auth Issues:
+- **409 Conflict errors**: Usually means service account lacks permissions - use personal auth
+- **Missing photos**: Check if database query is using correct auth method
+- **Upload failures**: Verify `gcloud auth` is active, not just service account
+
+### Environment Variables:
+```bash
+# For development - use personal auth
+unset GOOGLE_APPLICATION_CREDENTIALS  
+
+# For production - use service account
+export GOOGLE_APPLICATION_CREDENTIALS=firebase_service_account.json
+```
+
 ## Server Management (AUTOMATED SOLUTION)
 **ALWAYS USE THE AUTOMATED SCRIPT** - Never manually start servers to avoid port conflicts:
 
