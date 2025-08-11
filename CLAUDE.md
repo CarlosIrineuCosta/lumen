@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Instructions for Claude Code when working with this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Critical Rules
 - **NEVER USE EMOJIS** - Never add emojis to any files, responses, or UI elements
@@ -20,79 +20,41 @@ Lumen - Professional photography platform with real photo uploads, Firebase auth
 - **PROFESSIONAL NETWORKING** - Real-world connections via GPS proximity
 - **SUBSCRIPTION MODEL** - $5-150/year, no data exploitation or engagement manipulation
 
-## Current Status: MVP Development (2025-08-05)
-**COMPLETED**: 
-- Firebase authentication, user avatars, backend models, 500px-style gallery framework
-- PostgreSQL architecture migration (PhotoService, API endpoints)
-- Backend/frontend servers running successfully
-- API contract fixes for upload functionality
-- Database N+1 query optimization using SQLAlchemy joinedload
-- Photo upload functionality working end-to-end
-- Frontend gallery auto-refresh after uploads
-- Professional Masonry.js grid layout (replacing broken Justified Gallery)
+## Architecture Overview
 
-**PERFORMANCE ISSUE**: Google Cloud Storage signed URL generation taking 11+ seconds for 2 photos (seeking external assistance)
+The application follows a microservices architecture with clear separation of concerns:
 
-**CURRENT FOCUS**: Frontend UI improvements while performance issue is resolved externally
+### Backend (`lumen-gcp/backend/`)
+- **Framework**: FastAPI 0.104.1 with Python 3.11.x
+- **Database**: PostgreSQL via Cloud SQL with SQLAlchemy 2.0.23 ORM
+- **Authentication**: Dual-layer system (Firebase Admin SDK + gcloud auth)
+- **Storage**: Google Cloud Storage for photos
+- **API Structure**: Modular endpoints in `app/api/endpoints/`
+  - `auth.py` - Authentication and user registration
+  - `photos.py` - Photo upload, retrieval, and management
+  - `users.py` - User profile management
 
-## CRITICAL AUTHENTICATION ARCHITECTURE - READ THIS FIRST
+### Frontend (`lumen-gcp/frontend/`)
+- **Tech Stack**: Expo ~49.0.0 with React Native for cross-platform support
+- **Web Interface**: `lumen-app.html` - main application entry point
+- **Styling**: `css/lumen.css` - custom styling
+- **JavaScript**: `js/lumen-gallery.js` - photo gallery functionality
+- **Gallery System**: Professional Masonry.js grid layout
 
-### Dual-Layer Authentication System
-Lumen uses a **secure dual-layer authentication system** that Claude Code must understand:
+### Database Schema
+- **Users**: Flexible schema with photographer/model types, specialties, locations
+- **Photos**: Rich metadata including camera data, location, tags, collaborators
+- **Relationships**: User connections, photo interactions, specialties mapping
+- **Geographic**: Cities table for location-based discovery
 
-#### Layer 1: User Authentication (gcloud auth) 
-- **PRIMARY**: Users authenticate via `gcloud auth login carlos.irineu@gmail.com`
-- **SAFER**: Personal Google account authentication - secure, ready, mostly invulnerable
-- **DIRECT**: Direct connection to Google Cloud services using personal credentials
-- **PURPOSE**: Provides secure access to Cloud SQL, Cloud Storage, and other GCP services
+## Development Commands
 
-#### Layer 2: Service Account (firebase_service_account.json)
-- **SECONDARY**: Service account for application-level operations  
-- **PURPOSE**: Handles Firebase Admin SDK operations, background tasks
-- **SCOPE**: Limited permissions, acts as application identity
-- **COMPLEMENTARY**: Works alongside personal authentication, not instead of it
-
-### User Identity Flow
-```
-Google OAuth → Firebase UID → Lumen User ID → Database Record
-     ↓              ↓              ↓              ↓
-Personal Auth → Firebase Token → User Profile → Photos/Data
-```
-
-### Key Points for Claude Code:
-1. **NEVER assume service account handles everything** - Personal `gcloud auth` is primary
-2. **User IDs are transferred from Google** and linked to usernames/user IDs in database
-3. **Firebase UID** is the bridge between Google identity and Lumen user records
-4. **Cloud SQL access** uses personal authentication, NOT service account
-5. **Photo uploads** use personal Google Cloud Storage access
-
-### Database Connection Priority:
-1. **First**: Try personal `gcloud auth` credentials (recommended)
-2. **Second**: Fall back to service account if needed
-3. **Never**: Mix authentication methods in same operation
-
-### Troubleshooting Auth Issues:
-- **409 Conflict errors**: Usually means service account lacks permissions - use personal auth
-- **Missing photos**: Check if database query is using correct auth method
-- **Upload failures**: Verify `gcloud auth` is active, not just service account
-
-### Environment Variables:
+### Server Management (Primary Method)
 ```bash
-# For development - use personal auth
-unset GOOGLE_APPLICATION_CREDENTIALS  
-
-# For production - use service account
-export GOOGLE_APPLICATION_CREDENTIALS=firebase_service_account.json
-```
-
-## Server Management (AUTOMATED SOLUTION)
-**ALWAYS USE THE AUTOMATED SCRIPT** - Never manually start servers to avoid port conflicts:
-
-```bash
-# Clean startup (kills any existing processes)
+# Clean startup - ALWAYS USE THIS
 ./scripts/server-manager.sh start
 
-# Check status
+# Check server status
 ./scripts/server-manager.sh status
 
 # Stop all servers
@@ -100,174 +62,227 @@ export GOOGLE_APPLICATION_CREDENTIALS=firebase_service_account.json
 
 # Restart servers
 ./scripts/server-manager.sh restart
+
+# Clean processes without starting
+./scripts/server-manager.sh clean
 ```
 
-**Manual Commands (ONLY if script fails)**:
-- Backend: `cd lumen-gcp/backend && source venv/bin/activate && python -m uvicorn app.main:app --host 0.0.0.0 --port 8080 &`
-- Frontend: `cd lumen-gcp/frontend && python3 -m http.server 8001`
-
-**Access URLs**:
-- Backend API: http://100.106.201.33:8080
-- API Docs: http://100.106.201.33:8080/docs  
-- Frontend App: http://100.106.201.33:8001/lumen-app.html
-
-## File Paths Reference
-**Main App**: `lumen-gcp/frontend/lumen-app.html`
-**Backend API**: `lumen-gcp/backend/app/main.py`
-**CSS**: `lumen-gcp/frontend/css/lumen.css`
-**JavaScript**: `lumen-gcp/frontend/js/lumen-gallery.js`
-
-## Network Access
-All development accessible via Tailscale network (100.106.201.33). Never use localhost URLs.
-
-### Frontend Development
+### Manual Server Commands (Fallback Only)
 ```bash
+# Backend (port 8080)
+cd lumen-gcp/backend
+source venv/bin/activate
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8080 &
+
+# Frontend (port 8000)
+cd lumen-gcp/frontend
+python3 -m http.server 8000
+```
+
+### Database Operations
+```bash
+# Initialize database with schema and seed data
+cd lumen-gcp/backend
+source venv/bin/activate
+python init_db.py
+
+# Connect to PostgreSQL (requires gcloud auth)
+gcloud sql connect [INSTANCE_NAME] --user=postgres --database=lumen
+```
+
+### Development Setup
+```bash
+# Backend setup
+cd lumen-gcp/backend
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# Frontend setup
 cd lumen-gcp/frontend
 npm install
-npm start                    # Start Expo development server
-npm run web                  # Run web version
-npm run build:web           # Build for web deployment
-npm run deploy:web          # Deploy to Firebase hosting
 ```
 
-### Deployment
+### Testing Commands
 ```bash
-./lumen-gcp/deploy/deploy.sh [PROJECT_ID]  # Deploy backend to Cloud Run
+# Run all tests
+cd lumen-gcp/backend && source venv/bin/activate && pytest
+
+# Run with coverage report
+pytest --cov=app --cov-report=term-missing
+
+# Run only unit tests (fast)
+pytest -m unit
+
+# Run only integration tests
+pytest -m integration
+
+# Run specific test categories
+pytest -m auth          # Authentication tests
+pytest -m photos        # Photo management tests
+
+# Run tests in parallel
+pytest -n auto
+
+# Debug failing test
+pytest -vvv -s tests/unit/test_user_model.py::TestUserModel::test_method
 ```
 
-### Infrastructure
+### Testing and Deployment
 ```bash
+# Deploy backend to Cloud Run
+./lumen-gcp/deploy/deploy.sh [PROJECT_ID]
+
+# Expo development commands
+cd lumen-gcp/frontend
+npm start          # Start Expo development server
+npm run web        # Run web version
+npm run build:web  # Build for web deployment
+npm run deploy:web # Deploy to Firebase hosting
+
+# Infrastructure management
 cd lumen-gcp/infrastructure/terraform
 terraform init
 terraform plan
 terraform apply
-```
 
-### Cost Monitoring
-```bash
+# Cost monitoring
 python lumen-gcp/infrastructure/scripts/monitor_costs.py
 ```
 
-## Architecture
+## Authentication Architecture (Critical)
 
-The application follows a microservices architecture deployed on Google Cloud:
+Lumen uses a **dual-layer authentication system**:
 
-1. **API Layer** (backend/app/main.py): FastAPI application serving REST endpoints
-   - Authentication via Firebase Admin SDK
-   - Database connections via Cloud SQL Connector
-   - Image storage in Cloud Storage buckets
-   - Content moderation using Vertex AI
+### Layer 1: Personal Authentication (Primary)
+- **Method**: `gcloud auth login carlos.irineu@gmail.com`
+- **Purpose**: Direct access to GCP services (Cloud SQL, Storage)
+- **Priority**: ALWAYS try this first for development
 
-2. **Frontend**: Expo-based React Native app supporting iOS, Android, and web
-   - Firebase authentication integration
-   - API communication to backend services
+### Layer 2: Service Account (Secondary)
+- **File**: `firebase_service_account.json`
+- **Purpose**: Firebase Admin SDK operations, background tasks
+- **Scope**: Limited application-level permissions
 
-3. **Infrastructure**: Managed through Terraform
-   - Cloud Run for containerized backend
-   - Cloud SQL PostgreSQL for data storage
-   - Cloud Storage for media files
-   - Vertex AI for ML capabilities
+### Environment Configuration
+```bash
+# Development (use personal auth)
+unset GOOGLE_APPLICATION_CREDENTIALS
 
-## Key Dependencies
+# Production (use service account)
+export GOOGLE_APPLICATION_CREDENTIALS=firebase_service_account.json
+```
 
-### Backend
-- FastAPI 0.104.1 - Web framework
-- SQLAlchemy 2.0.23 - ORM
-- google-cloud-* libraries - GCP integrations
-- firebase-admin 6.3.0 - Authentication
-- stripe 7.8.0 - Payment processing
+### Authentication Troubleshooting
+- **409 Conflict errors**: Service account lacks permissions - switch to personal auth
+- **Missing photos**: Verify correct auth method for database queries
+- **Upload failures**: Ensure `gcloud auth` is active
 
-### Frontend
-- Expo ~49.0.0 - React Native framework
-- React Navigation 6.x - Navigation
-- Firebase 10.5.0 - Authentication client
+## Network Access
 
-## Network Access and Development Environment
+All development accessible via Tailscale network (100.106.201.33):
 
-This project runs on a Linux terminal environment accessible via Tailscale network. All development servers, tests, and deployments can be accessed from any device (Windows, macOS, mobile) connected to the Tailscale network using the appropriate Tailscale IP addresses.
+- **Backend API**: http://100.106.201.33:8080
+- **API Documentation**: http://100.106.201.33:8080/docs
+- **Frontend App**: http://100.106.201.33:8000/lumen-app.html
+- **Never use localhost** - always use Tailscale IP
 
-### Development Server Access
-- Backend API: http://[TAILSCALE_IP]:8080
-- API Documentation: http://[TAILSCALE_IP]:8080/docs  
-- Frontend (when running): http://[TAILSCALE_IP]:3000 or http://[TAILSCALE_IP]:19006
+## Key File Locations
 
-### Testing and Deployment Access
-- All testing endpoints and deployment previews are accessible via Tailscale IP
-- No port forwarding required - direct access through Tailscale mesh network
-- Can be accessed from any device connected to the Tailscale network
+### Core Application Files
+- **Main App**: `lumen-gcp/frontend/lumen-app.html`
+- **Backend Entry**: `lumen-gcp/backend/app/main.py`
+- **CSS**: `lumen-gcp/frontend/css/lumen.css`
+- **JavaScript**: `lumen-gcp/frontend/js/lumen-gallery.js`
 
-## Important Notes
+### Configuration Files
+- **Requirements**: `lumen-gcp/backend/requirements.txt`
+- **Package Config**: `lumen-gcp/frontend/package.json`
+- **Database Schema**: `lumen-gcp/backend/database/schema.sql`
+- **Seed Data**: `lumen-gcp/backend/database/seed_data.sql`
 
-- The project uses Google Cloud services extensively - ensure gcloud CLI is authenticated
-- Daily budget monitoring is implemented to control costs (target: $3-7/day)
-- No test files currently exist in the backend - consider implementing tests
-- CORS is currently set to allow all origins in development - needs configuration for production
-- Development environment runs on Linux but accessible from any OS via Tailscale
+### Infrastructure
+- **Terraform**: `lumen-gcp/infrastructure/terraform/`
+- **Deployment**: `lumen-gcp/deploy/deploy.sh`
+- **Server Manager**: `scripts/server-manager.sh`
+
+## Dependencies
+
+### Backend Key Libraries
+- **FastAPI 0.104.1** - Web framework
+- **SQLAlchemy 2.0.23** - Database ORM
+- **firebase-admin 6.3.0** - Authentication
+- **google-cloud-storage 2.10.0** - File storage
+- **uvicorn[standard] 0.24.0** - ASGI server
+- **psycopg2-binary 2.9.9** - PostgreSQL adapter
+
+### Frontend Key Libraries
+- **Expo ~49.0.0** - React Native framework
+- **Firebase 10.5.0** - Authentication client
+- **React Navigation 6.x** - Navigation
 
 ## Development Philosophy
-- **NO MOCKS**: Never use mock data or temporary workarounds - they take too long and cause distractions
-- Always implement real functionality with actual services
-- Fix issues directly rather than working around them
+- **NO MOCKS**: Always implement real functionality with actual services
 - **QUALITY OVER SCALE**: Professional photography focus, not viral growth
 - **USER EMPOWERMENT**: Users own their data, complete export capabilities
-
-## MVP Requirements for Demo/User Testing
-**Critical features needed for showing around and talking to people:**
-
-### User Experience Essentials
-- Logout button in user profile menu
-- User profile edit form (display name, bio, city, photography styles)
-- Model-specific fields (gender, age, height, weight) for models
-
-### Core Functionality
-- Image upload system (drag & drop, Firebase Storage)
-- User uploads view (own photos, edit/delete)
-- Photo stream display (all photos, 500px-style layout)
-- Infinite scroll and basic filtering
-
-### Technical Implementation
-- Backend server running successfully
-- PostgreSQL database initialized with schema + seed data
-- Photo upload endpoints
-- User profile management endpoints
-- Replace frontend mock data with real backend APIs
+- **DIRECT FIXES**: Address issues directly rather than working around them
 
 ## Multi-AI Coordination System
 
-### Roles & Responsibilities
-- **Claude Code**: Head developer (technical implementation lead) - THIS ROLE
+### Roles
+- **Claude Code**: Head developer (technical implementation lead)
 - **Claude Desktop**: Systems architect and business planner
-- **Gemini CLI**: GCP and Firebase specialist / developer
-
-### Shared Workspace
-- **Environment**: Same VS Code terminal with multiple AI assistants
-- **Coordination File**: `SHARED-STATUS.md` - ALWAYS CHECK AND UPDATE
-- **Reference Files**: `CLAUDE.md` (this), `GEMINI.md`, `SHARED-STATUS.md`
+- **Gemini CLI**: GCP and Firebase specialist
 
 ### Documentation Structure
-
-This project uses a prefix-based documentation system:
-
 - **CODE-** prefix: Technical implementation documents (Claude Code territory)
-- **STRATEGY-** prefix: Business strategy and planning documents (Claude Desktop territory)
+- **STRATEGY-** prefix: Business strategy documents (Claude Desktop territory)
+- **SHARED-STATUS.md**: Coordination file - ALWAYS CHECK AND UPDATE
 
-### Claude Code Responsibilities (Head Developer)
+## Current Development Status
 
-- **Technical Leadership**: Guide implementation decisions and coordinate with specialists
-- **Code Implementation**: Write, debug, and test all application code
-- **Architecture Implementation**: Implement technical architecture decisions
-- **Quality Assurance**: Ensure code quality, testing, and documentation
-- **Team Coordination**: Update `SHARED-STATUS.md` and direct specialist tasks
+### Completed Features
+- Firebase authentication with Google OAuth
+- PostgreSQL database schema and models
+- Photo upload pipeline with Cloud Storage
+- Backend API endpoints for auth, users, photos
+- Frontend gallery with Masonry.js layout
+- Server management automation
 
-### Coordination Protocol
+### Known Issues
+- **Performance**: Google Cloud Storage signed URL generation slow (11+ seconds for 2 photos)
+- **Testing**: No test files currently exist - needs pytest implementation
+- **CORS**: Currently allows all origins - needs production configuration
 
-- **Always check** `SHARED-STATUS.md` before starting work
-- **Update status** when completing tasks or encountering blockers
-- **Direct specialists** (Gemini CLI) on GCP/Firebase tasks
-- **Communicate handoffs** clearly between development phases
+### MVP Requirements
+- User profile management (edit display name, bio, city, specialties)
+- Model-specific fields (gender, age, height, weight)
+- Photo stream with infinite scroll
+- Real-time gallery updates after uploads
+- User connection/networking system
 
-## Development Environment
+## Testing Framework
 
-- Python 3.11.x reference environment
-- Firebase authentication working (Google OAuth with redirect fallback)
-- 500px open source repo research needed for gallery patterns
+### Test Structure
+- **Unit Tests**: Fast, isolated tests in `tests/unit/` (models, utilities, business logic)
+- **Integration Tests**: API endpoints, database operations in `tests/integration/`
+- **Coverage Target**: 70%+ code coverage with `pytest --cov=app`
+- **Test Categories**: Use markers (`@pytest.mark.unit`, `@pytest.mark.auth`, `@pytest.mark.photos`)
+
+### Test Database
+- SQLite in-memory database for tests
+- Each test gets fresh database session (automatic cleanup)
+- Mock Firebase authentication and Google Cloud Storage
+- Test fixtures available for common data (`sample_user_data`, `sample_photo_data`)
+
+### Running Tests Efficiently
+1. **Development**: `pytest -m unit` (fast unit tests only)
+2. **Pre-commit**: `pytest --cov=app --cov-fail-under=70` (full suite with coverage)
+3. **Debugging**: `pytest -vvv -s path/to/test.py::TestClass::test_method`
+4. **CI/CD**: `pytest -n auto` (parallel execution)
+
+## Important Notes
+- Development environment accessible from any OS via Tailscale network
+- Daily budget monitoring implemented (target: $3-7/day)
+- Comprehensive test suite with 70%+ coverage target
+- Project uses Google Cloud services extensively
