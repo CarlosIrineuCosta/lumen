@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Test - Lumen</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #222; color: #fff; }
+        .upload-area { border: 2px dashed #666; padding: 40px; text-align: center; cursor: pointer; margin: 20px 0; }
+        .upload-area.dragover { border-color: #4a90e2; background: rgba(74, 144, 226, 0.1); }
+        input, textarea, button { padding: 10px; margin: 10px 0; width: 100%; max-width: 400px; }
+        button { background: #4a90e2; color: white; border: none; cursor: pointer; }
+        .notification { position: fixed; top: 20px; right: 20px; padding: 15px; border-radius: 5px; color: white; }
+        .notification.success { background: #28a745; }
+        .notification.error { background: #dc3545; }
+        .hidden { display: none; }
+    </style>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+</head>
+<body>
+    <h1>Upload Test</h1>
+    
+    <div id="authSection">
+        <button id="googleSignIn">Sign in with Google</button>
+    </div>
+    
+    <div id="uploadSection" class="hidden">
+        <div class="upload-area" id="uploadArea">
+            <input type="file" id="fileInput" accept="image/*" hidden>
+            <p>Drop image here or click to browse</p>
+        </div>
+        
+        <div id="uploadForm" class="hidden">
+            <img id="previewImage" style="max-width: 200px; margin: 10px 0;" />
+            <br>
+            <input type="text" id="photoTitle" placeholder="Title (optional)" />
+            <br>
+            <textarea id="photoDescription" placeholder="Description (optional)"></textarea>
+            <br>
+            <button id="submitUpload">Upload Photo</button>
+        </div>
+    </div>
+    
+    <div id="status"></div>
+
+    <script>
+        const API_BASE_URL = 'http://100.106.201.33:8080/api/v1';
+        
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyCt8ERvmCTaV5obZHBTqOAOSCMTq-v16nE",
+            authDomain: "lumen-photo-app-20250731.firebaseapp.com",
+            projectId: "lumen-photo-app-20250731",
+            storageBucket: "lumen-photo-app-20250731.firebasestorage.app",
+            messagingSenderId: "316971929294"
+        };
+        
+        let authToken = null;
+        let selectedFile = null;
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        
+        // Check auth state
+        firebase.auth().onAuthStateChanged(async (user) => {
+            if (user) {
+                authToken = await user.getIdToken();
+                document.getElementById('authSection').classList.add('hidden');
+                document.getElementById('uploadSection').classList.remove('hidden');
+                showStatus('Signed in as: ' + user.email);
+            } else {
+                document.getElementById('authSection').classList.remove('hidden');
+                document.getElementById('uploadSection').classList.add('hidden');
+                showStatus('Not signed in');
+            }
+        });
+        
+        // Sign in
+        document.getElementById('googleSignIn').addEventListener('click', async () => {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            try {
+                await firebase.auth().signInWithPopup(provider);
+            } catch (error) {
+                showNotification('Sign in failed: ' + error.message, 'error');
+            }
+        });
+        
+        // Upload area events
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) handleFileSelect(files[0]);
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) handleFileSelect(e.target.files[0]);
+        });
+        
+        function handleFileSelect(file) {
+            if (!file.type.startsWith('image/')) {
+                showNotification('Please select an image file', 'error');
+                return;
+            }
+            
+            if (file.size > 20 * 1024 * 1024) {
+                showNotification('File too large (max 20MB)', 'error');
+                return;
+            }
+            
+            selectedFile = file;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('previewImage').src = e.target.result;
+                document.getElementById('uploadForm').classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        // Upload
+        document.getElementById('submitUpload').addEventListener('click', async () => {
+            if (!selectedFile || !authToken) return;
+            
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            
+            const title = document.getElementById('photoTitle').value.trim();
+            const description = document.getElementById('photoDescription').value.trim();
+            
+            if (title) formData.append('title', title);
+            if (description) formData.append('description', description);
+            
+            try {
+                showStatus('Uploading...');
+                const response = await fetch(`${API_BASE_URL}/photos/upload`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` },
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    showNotification('Upload successful!', 'success');
+                    showStatus('Upload result: ' + JSON.stringify(result, null, 2));
+                    // Reset form
+                    document.getElementById('uploadForm').classList.add('hidden');
+                    selectedFile = null;
+                    fileInput.value = '';
+                    document.getElementById('photoTitle').value = '';
+                    document.getElementById('photoDescription').value = '';
+                } else {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Upload failed');
+                }
+            } catch (error) {
+                showNotification('Upload failed: ' + error.message, 'error');
+                showStatus('Upload error: ' + error.message);
+            }
+        });
+        
+        function showStatus(message) {
+            document.getElementById('status').innerHTML = '<pre>' + message + '</pre>';
+        }
+        
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

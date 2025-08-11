@@ -21,8 +21,8 @@ lumen-gcp/backend/firebase_service_account.json
 lumen-gcp/backend/*service_account*.json
 
 # Google Cloud SDK
-lumen-gcp/backend/google-cloud-sdk/
-lumen-gcp/backend/google-cloud-cli-*.tar.gz
+**/google-cloud-sdk/
+**/google-cloud-cli-*.tar.gz
 
 # Logs
 *.log
@@ -75,3 +75,10 @@ lumen-gcp/infrastructure/terraform/.terraform.lock.hcl
 # Development artifacts
 .pytest_cache/
 .mypy_cache/
+
+# Screenshots and backups
+screenshots/
+**/*backup*/
+*-backup-*/
+.serena/
+**/.serena/

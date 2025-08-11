@@ -540,7 +540,7 @@ export class PhotoViewer {
         if (!photo) return;
         
         // Update main photo
-        this.mainPhoto.src = photo.url || photo.original_url || photo.thumbnail_url;
+        this.mainPhoto.src = photo.image_url || photo.url || photo.original_url || photo.thumbnail_url;
         this.mainPhoto.alt = photo.title || 'Photo';
         
         // Update photographer info
@@ -607,7 +607,7 @@ export class PhotoViewer {
             }
             
             const img = document.createElement('img');
-            img.src = photo.thumbnail_url || photo.url;
+            img.src = photo.thumbnail_url || photo.image_url || photo.url;
             img.alt = `Photo ${index + 1}`;
             thumb.appendChild(img);
             
@@ -655,7 +655,7 @@ export class PhotoViewer {
             stripPhoto.className = 'strip-photo';
             
             const img = document.createElement('img');
-            img.src = photo.url || photo.original_url || photo.thumbnail_url;
+            img.src = photo.image_url || photo.url || photo.original_url || photo.thumbnail_url;
             img.alt = photo.title || `Photo ${index + 1}`;
             stripPhoto.appendChild(img);
             

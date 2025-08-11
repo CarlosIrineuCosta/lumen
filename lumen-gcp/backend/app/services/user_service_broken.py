@@ -16,7 +16,6 @@ from ..models.user import (
 )
 from ..auth_middleware import AuthUser
 
-
 class UserService:
     def __init__(self):
         self.bucket_name = os.getenv('GOOGLE_CLOUD_STORAGE_BUCKET', 'lumen-photo-app-20250731.appspot.com')
@@ -51,13 +50,16 @@ class UserService:
                 availability_data={"open_for_work": True}
             )
             
-            db.add(user)
-            db.commit()
-            db.refresh(user)
-            return await self.get_user_profile(firebase_user.uid, include_private=True)
-        except IntegrityError as e:
-            db.rollback()
-            raise ValueError(f"Failed to create user: {str(e)}")
+            try:
+                db.add(user)
+                db.commit()
+        finally:
+            db.close()
+                db.refresh(user)
+                return await self.get_user_profile(firebase_user.uid, include_private=True)
+            except IntegrityError as e:
+                db.rollback()
+                raise ValueError(f"Failed to create user: {str(e)}")
         finally:
             db.close()
     
@@ -243,11 +245,14 @@ class UserService:
             
             user.updated_at = datetime.utcnow()
             
-            db.commit()
-            return await self.get_user_profile(uid, include_private=True)
-        except Exception as e:
-            db.rollback()
-            raise ValueError(f"Failed to update user profile: {str(e)}")
+            try:
+                db.commit()
+        finally:
+            db.close()
+                return await self.get_user_profile(uid, include_private=True)
+            except Exception as e:
+                db.rollback()
+                raise ValueError(f"Failed to update user profile: {str(e)}")
         finally:
             db.close()
     
@@ -339,6 +344,8 @@ class UserService:
             
             if not user:
                 return False
+        finally:
+            db.close()
             
             # Add deleted flag to profile_data (soft delete)
             profile_data = user.profile_data or {}
@@ -360,6 +367,8 @@ class UserService:
             
             if not user:
                 return {}
+        finally:
+            db.close()
             
             return {
                 "user_id": uid,
@@ -371,8 +380,6 @@ class UserService:
                 "verified": False,  # TODO: Implement verification
                 "user_type": user.user_type.type_name if user.user_type else "photographer"
             }
-        finally:
-            db.close()
     
     async def upload_profile_image(self, uid: str, file_content: bytes, filename: str, content_type: str) -> str:
         """Upload profile image to Google Cloud Storage"""

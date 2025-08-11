@@ -52,7 +52,7 @@ ALLOWED_ORIGINS = [
 
 ### 3. Run Development Server
 ```bash
-cd L:\Storage\NVMe\projects\wasenet\opusdev
+cd /home/cdc/Storage/NVMe/projects/wasenet/opusdev
 python -m http.server 8000
 ```
 
@@ -61,7 +61,7 @@ Then open: http://localhost:8000
 ### 4. Backend API
 Ensure backend is running:
 ```bash
-cd L:\Storage\NVMe\projects\wasenet\lumen-gcp\backend
+cd /home/cdc/Storage/NVMe/projects/wasenet/lumen-gcp/backend
 source venv/bin/activate  # Linux/Mac
 # or
 venv\Scripts\activate  # Windows

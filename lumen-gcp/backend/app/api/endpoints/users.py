@@ -1,6 +1,6 @@
 """User management endpoints for Lumen API"""
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from typing import Optional, List
 from datetime import datetime
 
@@ -134,3 +134,79 @@ async def get_user_types():
 async def get_photography_styles():
     """Get available photography styles"""
     return [style.value for style in PhotographyStyle]
+
+
+@router.post("/me/profile-image")
+async def upload_profile_image(
+    file: UploadFile = File(...),
+    user_token: dict = Depends(get_current_user)
+):
+    """Upload a custom profile image"""
+    firebase_user = AuthUser(user_token)
+    
+    # Validate file type
+    if not file.content_type or not file.content_type.startswith('image/'):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File must be an image"
+        )
+    
+    # Validate file size (max 5MB)
+    file_content = await file.read()
+    if len(file_content) > 5 * 1024 * 1024:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File size must be less than 5MB"
+        )
+    
+    try:
+        # Upload to Google Cloud Storage
+        image_url = await user_service.upload_profile_image(
+            firebase_user.uid, 
+            file_content, 
+            file.filename or "profile.jpg",
+            file.content_type
+        )
+        
+        # Update user profile with new image URL
+        await user_service.update_profile_image(firebase_user.uid, image_url)
+        
+        return {
+            "message": "Profile image uploaded successfully",
+            "image_url": image_url
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to upload profile image: {str(e)}"
+        )
+
+
+@router.delete("/me/profile-image")
+async def remove_profile_image(user_token: dict = Depends(get_current_user)):
+    """Remove custom profile image (revert to Gmail image)"""
+    firebase_user = AuthUser(user_token)
+    
+    try:
+        await user_service.remove_profile_image(firebase_user.uid)
+        return {"message": "Profile image removed successfully"}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to remove profile image: {str(e)}"
+        )
+
+
+@router.get("/experience-levels", response_model=List[str])
+async def get_experience_levels():
+    """Get available experience levels"""
+    from ...models.user import ExperienceLevel
+    return [level.value for level in ExperienceLevel]
+
+
+@router.get("/location-preferences", response_model=List[str])  
+async def get_location_preferences():
+    """Get available location preferences"""
+    from ...models.user import LocationPreference
+    return [pref.value for pref in LocationPreference]

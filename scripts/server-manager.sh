@@ -8,7 +8,7 @@ BACKEND_PORT=8080
 FRONTEND_PORT=8000
 PROJECT_ROOT="/home/cdc/Storage/NVMe/projects/wasenet"
 BACKEND_DIR="$PROJECT_ROOT/lumen-gcp/backend"
-FRONTEND_DIR="$PROJECT_ROOT/lumen-gcp/frontend"
+FRONTEND_DIR="$PROJECT_ROOT/opusdev"
 
 # Colors for output
 RED='\033[0;31m'
@@ -120,7 +120,7 @@ start_frontend() {
     # Test connection
     if curl -s http://100.106.201.33:$FRONTEND_PORT > /dev/null; then
         log "✅ Frontend server started successfully at http://100.106.201.33:$FRONTEND_PORT"
-        log "   App URL: http://100.106.201.33:$FRONTEND_PORT/lumen-app.html"
+        log "   App URL: http://100.106.201.33:$FRONTEND_PORT"
     else
         error "❌ Frontend server failed to start properly"
         tail -10 frontend.log
@@ -187,7 +187,7 @@ case "${1:-}" in
         echo "  clean   - Kill all server processes"
         echo ""
         echo "Backend:  http://100.106.201.33:$BACKEND_PORT"
-        echo "Frontend: http://100.106.201.33:$FRONTEND_PORT/lumen-app.html"
+        echo "Frontend: http://100.106.201.33:$FRONTEND_PORT"
         exit 1
         ;;
 esac

@@ -134,6 +134,9 @@ from enum import Enum
 class UserType(str, Enum):
     PHOTOGRAPHER = "photographer"
     MODEL = "model"
+    STUDIO = "studio"
+    MAKEUP_ARTIST = "makeup_artist"
+    STYLIST = "stylist"
 
 
 class PhotographyStyle(str, Enum):
@@ -145,6 +148,39 @@ class PhotographyStyle(str, Enum):
     FITNESS = "fitness"
     POLE_DANCE = "pole_dance"
     BIKINI = "bikini"
+    BOUDOIR = "boudoir"
+    STREET = "street"
+    LANDSCAPE = "landscape"
+    EVENT = "event"
+    WEDDING = "wedding"
+    CORPORATE = "corporate"
+    EDITORIAL = "editorial"
+    BEAUTY = "beauty"
+    CONCEPTUAL = "conceptual"
+    DOCUMENTARY = "documentary"
+
+
+class ExperienceLevel(str, Enum):
+    BEGINNER = "beginner"
+    AMATEUR = "amateur"
+    SEMI_PRO = "semi_pro"
+    PROFESSIONAL = "professional"
+    EXPERT = "expert"
+
+
+class LocationPreference(str, Enum):
+    STUDIO = "studio"
+    OUTDOOR = "outdoor"
+    URBAN = "urban"
+    NATURE = "nature"
+    HOME = "home"
+    LOCATION = "location"
+
+
+class ProfileImageSource(str, Enum):
+    GMAIL = "gmail"
+    UPLOADED = "uploaded"
+    NONE = "none"
 
 
 class UserProfilePublic(BaseModel):
@@ -159,6 +195,17 @@ class UserProfilePublic(BaseModel):
     photography_styles: List[str] = []
     portfolio_count: int = 0
     is_verified: bool = False
+    
+    # New public fields
+    artistic_statement: Optional[str] = None
+    tagline: Optional[str] = None
+    experience_level: Optional[str] = None
+    experience_years: Optional[int] = None
+    specializes_in: List[str] = []
+    open_for_work: bool = True
+    available_for_travel: bool = False
+    location_preferences: List[str] = []
+    website: Optional[str] = None
     
     class Config:
         from_attributes = True
@@ -181,6 +228,19 @@ class UserProfileFull(UserProfilePrivate):
     weight_kg: Optional[int] = None
     created_at: datetime
     updated_at: datetime
+    
+    # Full profile data
+    mission_statement: Optional[str] = None
+    camera_gear: List[str] = []
+    modeling_types: List[str] = []
+    comfortable_with: List[str] = []
+    special_skills: List[str] = []
+    studio_access: Optional[bool] = None
+    rates: Optional[Dict] = None
+    social_links: Optional[Dict] = None
+    availability_data: Optional[Dict] = None
+    contact_preferences: Optional[Dict] = None
+    travel_notes: Optional[str] = None
 
 
 class CreateUserRequest(BaseModel):
@@ -212,6 +272,37 @@ class CreateUserRequest(BaseModel):
         }
 
 
+class ProfileImageData(BaseModel):
+    """Profile image information"""
+    current_source: ProfileImageSource = ProfileImageSource.GMAIL
+    uploaded_image_url: Optional[str] = None
+    gmail_image_url: Optional[str] = None
+    upload_date: Optional[datetime] = None
+    image_verified: bool = False
+
+
+class AvailabilityData(BaseModel):
+    """User availability information"""
+    open_for_work: bool = True
+    available_for_travel: bool = False
+    travel_range_km: Optional[int] = Field(None, ge=0, le=5000)
+    travel_internationally: bool = False
+    travel_notes: Optional[str] = Field(None, max_length=500)
+    location_preferences: List[LocationPreference] = []
+    available_days: List[str] = []  # ["monday", "tuesday", "weekend"]
+    available_times: List[str] = []  # ["morning", "afternoon", "evening"]
+    timezone: Optional[str] = None
+
+
+class ContactPreferences(BaseModel):
+    """User contact preferences"""
+    preferred_contact: str = "email"  # email, phone, app_messaging
+    response_time: str = "within_24h"
+    booking_lead_time: str = "1_week"
+    allow_direct_booking: bool = True
+    require_references: bool = False
+
+
 class UpdateUserRequest(BaseModel):
     """Request model for updating user profile"""
     display_name: Optional[str] = Field(None, min_length=1, max_length=100)
@@ -219,13 +310,45 @@ class UpdateUserRequest(BaseModel):
     city_id: Optional[int] = None
     profile_image_url: Optional[str] = None
     
+    # Artistic expression
+    artistic_statement: Optional[str] = Field(None, max_length=2000)
+    tagline: Optional[str] = Field(None, max_length=200)
+    mission_statement: Optional[str] = Field(None, max_length=500)
+    
     # Model-specific fields
     gender: Optional[str] = None
     age: Optional[int] = Field(None, ge=18, le=65)
     height_cm: Optional[int] = Field(None, ge=140, le=220)
     weight_kg: Optional[int] = Field(None, ge=40, le=200)
     
+    # Extended profile data
     photography_styles: Optional[List[PhotographyStyle]] = None
+    experience_level: Optional[ExperienceLevel] = None
+    experience_years: Optional[int] = Field(None, ge=0, le=50)
+    
+    # Photographer-specific
+    camera_gear: Optional[List[str]] = None
+    specializes_in: Optional[List[str]] = None
+    studio_access: Optional[bool] = None
+    rates: Optional[Dict] = None  # {hourly_rate, day_rate, currency, negotiable}
+    
+    # Model-specific
+    modeling_types: Optional[List[str]] = None
+    comfortable_with: Optional[List[str]] = None
+    special_skills: Optional[List[str]] = None
+    
+    # Studio-specific
+    studio_size_sqft: Optional[int] = None
+    included_equipment: Optional[List[str]] = None
+    hourly_rate: Optional[float] = None
+    
+    # Social and contact
+    website: Optional[str] = None
+    social_links: Optional[Dict] = None
+    
+    # Settings
+    availability_data: Optional[AvailabilityData] = None
+    contact_preferences: Optional[ContactPreferences] = None
     privacy_settings: Optional[Dict] = None
 
 
