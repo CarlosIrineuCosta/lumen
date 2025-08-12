@@ -281,6 +281,50 @@ All development accessible via Tailscale network (100.106.201.33):
 3. **Debugging**: `pytest -vvv -s path/to/test.py::TestClass::test_method`
 4. **CI/CD**: `pytest -n auto` (parallel execution)
 
+## Development Policies
+
+### Bash Command Execution Guidelines
+**Run bash commands directly for normal troubleshooting.** Only ask user for help with:
+- Process management and server operations that might hang
+- Permission or access issues (sudo, file permissions)
+- Long-running operations or system-level changes
+- Directory navigation issues with path resolution failures
+
+### Daily Project Management
+- Document session start time in daily .md files
+- Use TodoWrite for complex multi-step tasks  
+- Clean up server processes daily to prevent conflicts
+- Always check and update SHARED-STATUS.md for coordination
+
+### Multi-AI Coordination
+- **Claude Code**: Technical implementation lead
+- **Gemini CLI**: GCP and Firebase specialist
+- Reference SHARED-STATUS.md for real-time coordination between AI assistants
+
+## CRITICAL SYSTEM DEPENDENCIES (READ BEFORE ANY CHANGES!)
+
+### Firebase UID vs Database vs Google Cloud Storage Consistency
+**THIS IS THE MOST FRAGILE PART OF THE SYSTEM - BREAKING THIS BREAKS IMAGE LOADING**
+
+1. **Firebase Authentication**: Creates UIDs like `9pGzwsVBRMaSxMOZ6QNTJJjnl1b2` (28-char strings)
+2. **Database Storage**: Uses UUID format in `users.id` and `photos.user_id` columns
+3. **Google Cloud Storage**: Photos stored at `gs://lumen-photos-20250731/photos/{firebase_uid}/{photo_id}.jpg`
+
+**CRITICAL PATH CONSISTENCY REQUIREMENTS:**
+- **Bucket Name**: Code MUST use `lumen-photos-20250731` (NOT `lumen-photo-app-20250731.appspot.com`)
+- **UID Format**: Database UUIDs must map to GCS Firebase UID strings for signed URL generation
+- **File Paths**: Any change to UID format requires migrating ALL existing files in GCS
+
+**WARNING LOCATIONS IN CODE:**
+- `opusdev/backend/app/services/photo_service.py` - bucket_name and _generate_photo_urls()
+- `opusdev/backend/app/models/user.py` - User.id column definition
+- `opusdev/backend/app/models/photo.py` - Photo.user_id column definition
+
+**IF IMAGES STOP LOADING:**
+1. Check bucket name in PhotoService.__init__()
+2. Verify Firebase UID format matches between database and GCS paths
+3. Test: `gsutil ls gs://lumen-photos-20250731/photos/` to see actual file paths
+
 ## Important Notes
 - Development environment accessible from any OS via Tailscale network
 - Daily budget monitoring implemented (target: $3-7/day)
