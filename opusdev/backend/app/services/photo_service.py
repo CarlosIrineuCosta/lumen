@@ -3,6 +3,7 @@
 import os
 import uuid
 import io
+import logging
 from typing import List, Optional, Any
 from datetime import datetime
 from PIL import Image
@@ -15,12 +16,14 @@ from ..models.photo import Photo, PhotoResponse, CreatePhotoRequest, UpdatePhoto
 from ..models.user import User
 from ..auth_middleware import AuthUser
 
+logger = logging.getLogger(__name__)
+
 
 class PhotoService:
     def __init__(self, db: Session = None):
         self.storage_client = storage.Client()
         
-        # ⚠️ CRITICAL WARNING: This bucket name MUST match actual GCS bucket!
+        # CRITICAL WARNING: This bucket name MUST match actual GCS bucket!
         # Actual bucket: 'lumen-photos-20250731' 
         # Wrong bucket breaks ALL image loading with placeholder URLs!
         # See CLAUDE.md "CRITICAL SYSTEM DEPENDENCIES" section before changing!
@@ -37,24 +40,41 @@ class PhotoService:
     def _generate_photo_urls(self, photo_id: uuid.UUID, firebase_uid: str) -> tuple[str, str]:
         """Generate signed URLs for photo and thumbnail dynamically
         
-        ⚠️⚠️⚠️ CRITICAL WARNING: UID FORMAT MAPPING ISSUE ⚠️⚠️⚠️
+        This function constructs GCS file paths using validated ID formats.
         
-        This function is the MOST FRAGILE part of the system!
+        FIXED: Now uses ID validation utilities to ensure consistent string formatting
+        and proper error handling for ID format mismatches.
         
-        CURRENT PROBLEM (Aug 12, 2025):
-        - Database has UUID format (after schema changes)
-        - GCS files stored with Firebase UID strings (28-char alphanumeric)
-        - This mismatch causes ALL images to show as placeholders!
-        
-        REQUIRED PATH FORMAT: photos/{firebase_uid}/{photo_id}.jpg
-        Example: photos/9pGzwsVBRMaSxMOZ6QNTJJjnl1b2/c711a9ab-4689-4576-a511-7ce60cc214f3.jpg
-        
-        See CLAUDE.md "CRITICAL SYSTEM DEPENDENCIES" before modifying!
+        Args:
+            photo_id: Photo UUID (will be converted to string)
+            firebase_uid: Firebase UID string (will be validated)
+            
+        Returns:
+            Tuple of (image_url, thumbnail_url)
+            
+        Raises:
+            IDValidationError: If ID formats are invalid
         """
+        from app.utils import validate_id_consistency, format_gcs_path, log_id_context
+        
         try:
-            # Construct file paths using Firebase UID (matches upload path)
-            image_path = f"photos/{firebase_uid}/{photo_id}.jpg"
-            thumb_path = f"thumbnails/{firebase_uid}/{photo_id}_thumb.jpg"
+            # Validate and convert IDs to consistent string format
+            validated_user_id, validated_photo_id = validate_id_consistency(
+                firebase_uid, photo_id, context="URL generation"
+            )
+            
+            # Construct file paths using validated, string-formatted IDs
+            image_path = format_gcs_path("photos", validated_user_id, f"{validated_photo_id}.jpg", 
+                                       context="image path")
+            thumb_path = format_gcs_path("thumbnails", validated_user_id, f"{validated_photo_id}_thumb.jpg",
+                                       context="thumbnail path")
+            
+            # Log for debugging
+            log_id_context("Generating signed URLs", 
+                          photo_id=validated_photo_id, 
+                          firebase_uid=validated_user_id,
+                          image_path=image_path,
+                          thumb_path=thumb_path)
             
             # Generate signed URLs with 1-hour expiration (shorter for security)
             from datetime import timedelta
@@ -77,28 +97,40 @@ class PhotoService:
             return image_url, thumbnail_url
             
         except Exception as e:
-            # FALLBACK: Return placeholder URLs if GCS fails
-            print(f"⚠️ Failed to generate signed URLs for photo {photo_id}: {e}")
-            print(f"⚠️ Expected path: {image_path}")
-            print(f"⚠️ Check if file exists: gsutil ls gs://{self.bucket_name}/photos/{firebase_uid}/")
+            # Enhanced error logging with ID context
+            logger.error(f"Failed to generate signed URLs for photo {photo_id} (user: {firebase_uid}): {e}")
+            logger.error(f"Expected paths - Image: {image_path if 'image_path' in locals() else 'unknown'}, "
+                        f"Thumbnail: {thumb_path if 'thumb_path' in locals() else 'unknown'}")
+            logger.error(f"Debug command: gsutil ls gs://{self.bucket_name}/photos/{firebase_uid}/")
+            
+            # Return placeholder URLs with more specific error context
             return (
-                f"https://via.placeholder.com/800x600?text=Image+Not+Available",
-                f"https://via.placeholder.com/200x200?text=Thumb+Not+Available"
+                f"https://via.placeholder.com/800x600?text=Image+Error+{type(e).__name__}",
+                f"https://via.placeholder.com/200x200?text=Thumb+Error+{type(e).__name__}"
             )
     
     async def ensure_user_exists(self, firebase_user: AuthUser) -> str:
         """Ensure user exists in PostgreSQL, create if not"""
+        from app.utils import validate_firebase_uid, log_id_context
+        
+        # Validate Firebase UID format first
+        validated_uid = validate_firebase_uid(firebase_user.uid, context="user existence check")
+        
+        log_id_context("Checking user existence", firebase_uid=validated_uid)
         
         # Check if user already exists (Firebase UID is now the primary key)
         result = self.db.execute(
             text("SELECT id FROM users WHERE id = :firebase_uid"),
-            {"firebase_uid": firebase_user.uid}
+            {"firebase_uid": validated_uid}
         ).fetchone()
         
         if result:
-            return firebase_user.uid  # User exists, return Firebase UID
+            logger.debug(f"User exists: {validated_uid}")
+            return validated_uid  # User exists, return Firebase UID
         
         # User doesn't exist - create minimal user record
+        logger.info(f"Creating new user record for Firebase UID: {validated_uid}")
+        
         # Generate unique handle from email or name
         base_handle = firebase_user.email.split('@')[0] if firebase_user.email else 'user'
         base_handle = ''.join(c for c in base_handle if c.isalnum())[:20]  # Clean handle
@@ -126,14 +158,15 @@ class PhotoService:
                 4, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
             )
         '''), {
-            "id": firebase_user.uid,  # Firebase UID as primary key
+            "id": validated_uid,  # Validated Firebase UID as primary key
             "email": firebase_user.email or f"{handle}@unknown.com",
             "handle": handle,
             "display_name": firebase_user.name or firebase_user.email or handle
         })
         
         self.db.commit()
-        return firebase_user.uid
+        logger.info(f"Created user record: {validated_uid} (handle: {handle})")
+        return validated_uid
     
     async def upload_photo(self, 
                           firebase_user: AuthUser, 
@@ -142,24 +175,38 @@ class PhotoService:
                           content_type: str,
                           request: CreatePhotoRequest) -> Photo:
         """Upload a photo file to Google Cloud Storage and create database record"""
+        from app.utils import validate_firebase_uid, format_gcs_path, log_id_context
+        
+        # Validate Firebase UID first
+        validated_firebase_uid = validate_firebase_uid(firebase_user.uid, context="photo upload")
         
         # Generate unique photo ID
         photo_id = uuid.uuid4()
         file_extension = filename.split('.')[-1] if '.' in filename else 'jpg'
-                
-        # Generate storage paths
-        storage_filename = f"photos/{firebase_user.uid}/{photo_id}.{file_extension}"
-        thumbnail_filename = f"thumbnails/{firebase_user.uid}/{photo_id}_thumb.{file_extension}"
+        
+        # Generate storage paths using validated ID utilities
+        storage_filename = format_gcs_path("photos", validated_firebase_uid, f"{photo_id}.{file_extension}",
+                                         context="photo upload")
+        thumbnail_filename = format_gcs_path("thumbnails", validated_firebase_uid, f"{photo_id}_thumb.{file_extension}",
+                                           context="thumbnail upload")
+        
+        log_id_context("Photo upload", 
+                      firebase_uid=validated_firebase_uid,
+                      photo_id=str(photo_id),
+                      storage_path=storage_filename,
+                      thumbnail_path=thumbnail_filename)
         
         try:
             # Upload original image
             blob = self.bucket.blob(storage_filename)
             blob.upload_from_string(file_content, content_type=content_type)
+            logger.info(f"Uploaded original image: {storage_filename}")
             
             # Create and upload thumbnail
             thumbnail_content = self._create_thumbnail(file_content)
             thumbnail_blob = self.bucket.blob(thumbnail_filename)
             thumbnail_blob.upload_from_string(thumbnail_content, content_type='image/jpeg')
+            logger.info(f"Uploaded thumbnail: {thumbnail_filename}")
             
             # Ensure user exists in PostgreSQL
             user_id = await self.ensure_user_exists(firebase_user)
@@ -167,7 +214,7 @@ class PhotoService:
             # Create photo record using SQLAlchemy model
             photo = Photo(
                 id=photo_id,
-                user_id=user_id,  # This is the Firebase UID
+                user_id=user_id,  # This is the validated Firebase UID
                 title=request.title or filename,
                 description=request.description,
                 user_tags=request.user_tags or [],
@@ -184,9 +231,10 @@ class PhotoService:
             self.db.add(photo)
             self.db.commit()
             self.db.refresh(photo)
+            logger.info(f"Created photo record: {photo.id}")
             
-            # Generate dynamic URLs
-            image_url, thumbnail_url = self._generate_photo_urls(photo.id, firebase_user.uid)
+            # Generate dynamic URLs with validated IDs
+            image_url, thumbnail_url = self._generate_photo_urls(photo.id, validated_firebase_uid)
             
             # Return photo with generated URLs
             return PhotoResponse(
@@ -208,6 +256,7 @@ class PhotoService:
             )
         except Exception as e:
             self.db.rollback()
+            logger.error(f"Failed to upload photo: {str(e)}")
             raise Exception(f"Failed to upload photo: {str(e)}")
     
     def _create_thumbnail(self, file_content: bytes, max_size: tuple = (400, 400)) -> bytes:
@@ -232,7 +281,7 @@ class PhotoService:
             return output.getvalue()
             
         except Exception as e:
-            print(f"Warning: Failed to create thumbnail: {e}")
+            logger.warning(f"Failed to create thumbnail: {e}")
             # Return original if thumbnail creation fails
             return file_content
     
@@ -251,8 +300,8 @@ class PhotoService:
             # Convert to response format
             photo_responses = []
             for photo in photos:
-                # Generate URLs dynamically
-                image_url, thumbnail_url = self._generate_photo_urls(photo.id, photo.user_id)
+                # Generate URLs dynamically with validated IDs
+                image_url, thumbnail_url = self._generate_photo_urls(photo.id, photo.user.id)
                 
                 photo_responses.append(PhotoResponse(
                     id=str(photo.id),
@@ -280,7 +329,7 @@ class PhotoService:
                 has_more=(page * limit) < total_count
             )
         except Exception as e:
-            print(f"Error getting recent photos: {e}")
+            logger.error(f"Error getting recent photos: {e}")
             return PhotoListResponse(
                 photos=[],
                 total_count=0,
@@ -296,15 +345,20 @@ class PhotoService:
                              page: int = 1, 
                              limit: int = 20) -> PhotoListResponse:
         """Get photos for a specific user"""
+        from app.utils import validate_firebase_uid
+        
         try:
+            # Validate user_id format
+            validated_user_id = validate_firebase_uid(user_id, context="get user photos")
+            
             # Build query
-            query = self.db.query(Photo).filter(Photo.user_id == user_id)            
+            query = self.db.query(Photo).filter(Photo.user_id == validated_user_id)            
             # Filter to portfolio photos if requested
             if portfolio_only:
                 query = query.filter(Photo.is_portfolio == True)
             
             # Only show public photos unless viewing own photos
-            if viewer_user_id != user_id:
+            if viewer_user_id != validated_user_id:
                 query = query.filter(Photo.is_public == True)
             
             # Paginate
@@ -315,14 +369,14 @@ class PhotoService:
             total_count = query.count()
             
             # Get user info for photographer name
-            user = self.db.query(User).filter(User.id == user_id).first()
+            user = self.db.query(User).filter(User.id == validated_user_id).first()
             photographer_name = user.display_name if user else "Unknown"
             
             # Convert to response format
             photo_responses = []
             for photo in photos:
-                # Generate URLs dynamically
-                image_url, thumbnail_url = self._generate_photo_urls(photo.id, user_id)
+                # Generate URLs dynamically with validated IDs
+                image_url, thumbnail_url = self._generate_photo_urls(photo.id, validated_user_id)
                 
                 photo_responses.append(PhotoResponse(
                     id=str(photo.id),
@@ -350,7 +404,7 @@ class PhotoService:
                 has_more=(page * limit) < total_count
             )
         except Exception as e:
-            print(f"Error getting user photos: {e}")
+            logger.error(f"Error getting user photos: {e}")
             return PhotoListResponse(
                 photos=[],
                 total_count=0,
@@ -361,8 +415,13 @@ class PhotoService:
     
     async def get_photo_by_id(self, photo_id: str, viewer_user_id: Optional[str] = None) -> Optional[PhotoResponse]:
         """Get a single photo by ID"""
+        from app.utils import validate_uuid
+        
         try:
-            photo = self.db.query(Photo).filter(Photo.id == photo_id).first()
+            # Validate photo_id format
+            validated_photo_uuid = validate_uuid(photo_id, context="get photo by id")
+            
+            photo = self.db.query(Photo).filter(Photo.id == validated_photo_uuid).first()
             
             if not photo:
                 return None
@@ -374,7 +433,7 @@ class PhotoService:
             # Get user info
             user = self.db.query(User).filter(User.id == photo.user_id).first()
             
-            # Generate URLs dynamically
+            # Generate URLs dynamically with validated IDs
             image_url, thumbnail_url = self._generate_photo_urls(photo.id, photo.user_id)
             
             return PhotoResponse(
@@ -395,7 +454,7 @@ class PhotoService:
                 camera_data=photo.camera_data
             )
         except Exception as e:
-            print(f"Error getting photo by ID: {e}")
+            logger.error(f"Error getting photo by ID: {e}")
             return None
     
     async def update_photo(self, 
@@ -403,10 +462,16 @@ class PhotoService:
                           user_id: str, 
                           request: UpdatePhotoRequest) -> Optional[PhotoResponse]:
         """Update photo metadata"""
+        from app.utils import validate_uuid, validate_firebase_uid
+        
         try:
+            # Validate both IDs
+            validated_photo_uuid = validate_uuid(photo_id, context="update photo")
+            validated_user_id = validate_firebase_uid(user_id, context="update photo")
+            
             photo = self.db.query(Photo).filter(
-                Photo.id == photo_id, 
-                Photo.user_id == user_id
+                Photo.id == validated_photo_uuid, 
+                Photo.user_id == validated_user_id
             ).first()
             
             if not photo:
@@ -436,45 +501,62 @@ class PhotoService:
             self.db.refresh(photo)
             
             # Return updated photo
-            return await self.get_photo_by_id(str(photo.id), user_id)
+            return await self.get_photo_by_id(str(photo.id), validated_user_id)
             
         except Exception as e:
             self.db.rollback()
-            print(f"Error updating photo: {e}")
+            logger.error(f"Error updating photo: {e}")
             return None
     
     async def delete_photo(self, photo_id: str, user_id: str) -> bool:
         """Delete a photo (both database record and files)"""
+        from app.utils import validate_uuid, validate_firebase_uid, format_gcs_path
+        
         try:
+            # Validate both IDs
+            validated_photo_uuid = validate_uuid(photo_id, context="delete photo")
+            validated_user_id = validate_firebase_uid(user_id, context="delete photo")
+            
             photo = self.db.query(Photo).filter(
-                Photo.id == photo_id,
-                Photo.user_id == user_id
+                Photo.id == validated_photo_uuid,
+                Photo.user_id == validated_user_id
             ).first()
             
             if not photo:
                 return False
             
-            # Delete files from storage
+            # Delete files from storage using validated paths
             try:
+                # Construct paths using validation utilities
+                validated_photo_id_str = str(validated_photo_uuid)
+                
                 # Delete original
-                blob = self.bucket.blob(f"photos/{user_id}/{photo.id}.jpg")
+                image_path = format_gcs_path("photos", validated_user_id, f"{validated_photo_id_str}.jpg",
+                                           context="delete original")
+                blob = self.bucket.blob(image_path)
                 if blob.exists():
                     blob.delete()
+                    logger.info(f"Deleted original image: {image_path}")
                 
                 # Delete thumbnail
-                thumb_blob = self.bucket.blob(f"thumbnails/{user_id}/{photo.id}_thumb.jpg")
+                thumb_path = format_gcs_path("thumbnails", validated_user_id, f"{validated_photo_id_str}_thumb.jpg",
+                                           context="delete thumbnail")
+                thumb_blob = self.bucket.blob(thumb_path)
                 if thumb_blob.exists():
                     thumb_blob.delete()
+                    logger.info(f"Deleted thumbnail: {thumb_path}")
+                    
             except Exception as e:
-                print(f"Warning: Failed to delete files from storage: {e}")
+                logger.warning(f"Failed to delete files from storage: {e}")
             
             # Delete database record
             self.db.delete(photo)
             self.db.commit()
+            logger.info(f"Deleted photo record: {validated_photo_uuid}")
             
             return True
             
         except Exception as e:
             self.db.rollback()
-            print(f"Error deleting photo: {e}")
+            logger.error(f"Error deleting photo: {e}")
             return False

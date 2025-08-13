@@ -9,6 +9,33 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **USE SERENA EXTENSIVELY** - Leverage semantic analysis, memory system, and symbol-level code understanding instead of basic file operations
 - **NO MOCKS** - Never use mock data or temporary workarounds, always implement real functionality
 - **READ ALL MD FILES ON START** - Always check project_status.md, CLAUDE.md, and README.md first
+- **ALWAYS USE ID VALIDATION** - Use `app.utils` validation functions for all Firebase UIDs and UUIDs to prevent image loading issues
+
+## ID Management (CRITICAL)
+
+**NEVER bypass ID validation** - All Firebase UIDs and UUIDs MUST be validated using the centralized system:
+
+```python
+# Always validate IDs in your code
+from app.utils import validate_firebase_uid, validate_uuid, validate_id_consistency
+from app.services import IDManagementService
+
+# Validate Firebase UID (28-char alphanumeric)
+user_id = validate_firebase_uid(firebase_user.uid, "operation context")
+
+# Validate UUID format
+photo_uuid = validate_uuid(photo_id, "operation context")
+
+# Use ID Management Service for complex operations
+id_service = IDManagementService()
+photo_path, thumb_path = id_service.generate_storage_paths(user_id, photo_id)
+```
+
+**Key Points:**
+- Firebase UIDs = 28-char strings (NOT UUIDs) - used for users and GCS paths
+- Photo IDs = UUID4 format - used for photos and database references
+- NEVER mix up these formats or images will show as placeholders
+- Use audit scripts to check consistency: `python scripts/audit_gcs_files.py` and `python scripts/check_db_consistency.py`
 
 ## Project Overview
 Lumen - Professional photography platform with real photo uploads, Firebase auth, and Google Cloud Storage. Instagram-like interface focused on professional photography networking and people-first discovery.
@@ -234,10 +261,38 @@ All development accessible via Tailscale network (100.106.201.33):
 - **Claude Desktop**: Systems architect and business planner
 - **Gemini CLI**: GCP and Firebase specialist
 
+### Gemini CLI Specific Responsibilities
+When working with Gemini CLI, focus on:
+- **Firebase Authentication**: Token validation, user management, security rules
+- **Google Cloud Storage**: Bucket management, permissions, image upload flows
+- **Cloud SQL**: Database connections, query optimization, backup strategies
+- **Infrastructure**: GCP service configuration, monitoring, cost optimization
+- **API Integration**: Firebase Admin SDK, Cloud SDK troubleshooting
+
 ### Documentation Structure
 - **CODE-** prefix: Technical implementation documents (Claude Code territory)
 - **STRATEGY-** prefix: Business strategy documents (Claude Desktop territory)
 - **SHARED-STATUS.md**: Coordination file - ALWAYS CHECK AND UPDATE
+
+### Firebase & GCP Commands Reference
+```bash
+# Firebase CLI
+firebase projects:list
+firebase auth:export
+firebase storage:rules:get
+firebase hosting:sites:list
+
+# Google Cloud SDK
+gcloud auth list
+gcloud projects list
+gcloud sql instances list
+gcloud storage buckets list
+
+# Testing connectivity
+firebase functions:config:get
+gsutil ls gs://bucket-name
+gcloud sql connect instance-name --user=username
+```
 
 ## Current Development Status
 

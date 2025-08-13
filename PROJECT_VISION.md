@@ -4,7 +4,7 @@
 
 Lumen is a professional photography platform designed as an ethical alternative to Instagram, prioritizing photographers' artistic freedom, professional networking, and quality over engagement metrics. It serves as a censorship-free portfolio and collaboration platform for photographers and models worldwide.
 
-**Project Location**: `L:\projects\wasenet\`
+**Project Location**: `/home/cdc/Storage/NVMe/projects/wasenet/`
 **Development Docs**: Check `/docs/` directory for detailed technical (CODE-*) and strategic (STRATEGY-*) documentation
 
 ## Core Philosophy
