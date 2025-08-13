@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    
+    <title>Lumen Glass UI Prototype</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-primary: #000000;
+            --bg-secondary: #0a0a0a;
+            --bg-tertiary: #141414;
+            --bg-card: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --text-tertiary: #666666;
+            --accent: #ffd700;
+            --border: #2a2a2a;
+            --hover: rgba(255, 255, 255, 0.05);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+        
+        /* Header Navigation */
+        .header-nav {
+            position: sticky;
+            top: 0;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            z-index: 100;
+            padding: 0 16px;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            gap: 24px;
+            height: 48px;
+            align-items: center;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        
+        .nav-tabs::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .nav-tab {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+            padding: 4px 0;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        
+        .nav-tab.active {
+            color: var(--text-primary);
+            border-bottom-color: var(--text-primary);
+        }
+        
+        /* Search Bar */
+        .search-container {
+            padding: 16px;
+            background: var(--bg-secondary);
+        }
+        
+        .search-bar {
+            width: 100%;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 10px 20px;
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s;
+        }
+        
+        .search-bar:focus {
+            border-color: var(--text-secondary);
+            background: var(--bg-card);
+        }
+        
+        .search-bar::placeholder {
+            color: var(--text-tertiary);
+        }
+        
+        /* Member List (Glass Style) */
+        .member-list {
+            padding: 16px;
+        }
+        
+        .member-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .member-card:hover {
+            background: var(--hover);
+            margin: 0 -16px;
+            padding-left: 16px;
+            padding-right: 16px;
+        }
+        
+        .member-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+        
+        .member-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--bg-tertiary);
+        }
+        
+        .member-details {
+            flex: 1;
+        }
+        
+        .member-name {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 2px;
+        }
+        
+        .member-username {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+        
+        .member-photos {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .member-photo-thumb {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        
+        .follow-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .follow-btn:hover {
+            background: var(--text-primary);
+            color: var(--bg-primary);
+        }
+        
+        .follow-btn.following {
+            background: var(--text-primary);
+            color: var(--bg-primary);
+        }
+        
+        .follow-icon {
+            font-size: 18px;
+        }
+        
+        /* Appreciation Notifications */
+        .notifications-panel {
+            padding: 16px;
+            background: var(--bg-primary);
+        }
+        
+        .notification-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .notification-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .notification-content {
+            flex: 1;
+        }
+        
+        .notification-text {
+            margin-bottom: 4px;
+        }
+        
+        .notification-user {
+            font-weight: 600;
+        }
+        
+        .notification-action {
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .appreciation-icon {
+            color: var(--accent);
+        }
+        
+        .notification-time {
+            color: var(--text-tertiary);
+            font-size: 12px;
+        }
+        
+        .notification-photo {
+            width: 56px;
+            height: 56px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            z-index: 100;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 16px;
+            text-decoration: none;
+            color: var(--text-secondary);
+            transition: color 0.2s;
+        }
+        
+        .nav-item.active {
+            color: var(--text-primary);
+        }
+        
+        .nav-icon {
+            font-size: 24px;
+        }
+        
+        .nav-label {
+            font-size: 10px;
+            font-weight: 500;
+        }
+        
+        /* Add Button */
+        .add-btn {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            transition: transform 0.2s;
+            z-index: 99;
+        }
+        
+        .add-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        /* Patron Badge */
+        .patron-badge {
+            background: var(--accent);
+            color: var(--bg-primary);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Navigation -->
+    <header class="header-nav">
+        <nav class="nav-tabs">
+            <a href="#" class="nav-tab">Explore</a>
+            <a href="#" class="nav-tab active">Members</a>
+            <a href="#" class="nav-tab">Highlights</a>
+            <a href="#" class="nav-tab">Series</a>
+        </nav>
+    </header>
+    
+    <!-- Search -->
+    <div class="search-container">
+        <input type="text" class="search-bar" placeholder="Search...">
+    </div>
+    
+    <!-- Content Container -->
+    <div id="content">
+        <!-- Members List View -->
+        <div class="member-list" id="membersView">
+            <!-- Member 1 -->
+            <div class="member-card">
+                <div class="member-info">
+                    <img src="https://via.placeholder.com/64" alt="Avatar" class="member-avatar">
+                    <div class="member-details">
+                        <div class="member-name">Xinyi Deng</div>
+                    </div>
+                </div>
+                <div class="member-photos">
+                    <img src="https://via.placeholder.com/80x80/222" alt="Photo" class="member-photo-thumb">
+                    <img src="https://via.placeholder.com/80x80/333" alt="Photo" class="member-photo-thumb">
+                    <img src="https://via.placeholder.com/80x80/444" alt="Photo" class="member-photo-thumb">
+                </div>
+                <button class="follow-btn">
+                    <span class="follow-icon">👤</span>
+                    <span>+</span>
+                </button>
+            </div>
+            
+            <!-- Member 2 -->
+            <div class="member-card">
+                <div class="member-info">
+                    <img src="https://via.placeholder.com/64" alt="Avatar" class="member-avatar">
+                    <div class="member-details">
+                        <div class="member-name">
+                            Will Kinsler
+                            <span class="patron-badge">Patron</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="member-photos">
+                    <img src="https://via.placeholder.com/80x80/555" alt="Photo" class="member-photo-thumb">
+                    <img src="https://via.placeholder.com/80x80/666" alt="Photo" class="member-photo-thumb">
+                    <img src="https://via.placeholder.com/80x80/777" alt="Photo" class="member-photo-thumb">
+                </div>
+                <button class="follow-btn following">
+                    <span class="follow-icon">👤</span>
+                    <span>✓</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Notifications View (Hidden by default) -->
+        <div class="notifications-panel" id="notificationsView" style="display: none;">
+            <!-- Notification 1 -->
+            <div class="notification-item">
+                <img src="https://via.placeholder.com/48" alt="Avatar" class="notification-avatar">
+                <div class="notification-content">
+                    <div class="notification-text">
+                        <span class="notification-user">Kat Zdan</span>
+                        <span class="notification-action">
+                            <span class="appreciation-icon">✨</span>
+                            appreciated your photo
+                        </span>
+                    </div>
+                    <div class="notification-time">40 minutes ago</div>
+                </div>
+                <img src="https://via.placeholder.com/56" alt="Photo" class="notification-photo">
+            </div>
+            
+            <!-- Notification 2 -->
+            <div class="notification-item">
+                <img src="https://via.placeholder.com/48" alt="Avatar" class="notification-avatar">
+                <div class="notification-content">
+                    <div class="notification-text">
+                        <span class="notification-user">Michael Badalamenti</span>
+                        <span class="notification-action">
+                            <span class="appreciation-icon">✨</span>
+                            appreciated your photo
+                        </span>
+                    </div>
+                    <div class="notification-time">6 hours ago</div>
+                </div>
+                <img src="https://via.placeholder.com/56" alt="Photo" class="notification-photo">
+            </div>
+            
+            <!-- Comment Notification -->
+            <div class="notification-item">
+                <img src="https://via.placeholder.com/48" alt="Avatar" class="notification-avatar">
+                <div class="notification-content">
+                    <div class="notification-text">
+                        <span class="notification-user">Xinyi Deng</span>
+                        <span>Thank you Charles!</span>
+                    </div>
+                    <div class="notification-time">11 hours ago</div>
+                </div>
+                <img src="https://via.placeholder.com/56" alt="Photo" class="notification-photo">
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Button -->
+    <button class="add-btn">+</button>
+    
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="#" class="nav-item">
+            <span class="nav-icon">🏠</span>
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">🔍</span>
+        </a>
+        <a href="#" class="nav-item active">
+            <span class="nav-icon">👤</span>
+        </a>
+        <a href="#" class="nav-item" onclick="toggleNotifications()">
+            <span class="nav-icon">🔔</span>
+        </a>
+    </nav>
+    
+    <script>
+        // Toggle between views
+        function toggleNotifications() {
+            const membersView = document.getElementById('membersView');
+            const notificationsView = document.getElementById('notificationsView');
+            
+            if (notificationsView.style.display === 'none') {
+                membersView.style.display = 'none';
+                notificationsView.style.display = 'block';
+            } else {
+                membersView.style.display = 'block';
+                notificationsView.style.display = 'none';
+            }
+        }
+        
+        // Follow button interaction
+        document.querySelectorAll('.follow-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                this.classList.toggle('following');
+                const icon = this.querySelector('.follow-icon + span');
+                icon.textContent = this.classList.contains('following') ? '✓' : '+';
+            });
+        });
+        
+        // Member card click
+        document.querySelectorAll('.member-card').forEach(card => {
+            card.addEventListener('click', function() {
+                console.log('Navigate to member profile');
+                // This would navigate to the member's profile
+            });
+        });
+    </script>
+</body>
+</html>

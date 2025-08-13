@@ -1,6 +1,8 @@
 // Photo Display System - Reusable photo grid display logic
 // Handles different contexts: Home feed, Discovery, Portfolio, etc.
 
+import SimpleMasonry from './simple-masonry.js';
+
 class PhotoDisplay {
     constructor(masonry) {
         this.masonry = masonry;
@@ -42,7 +44,6 @@ class PhotoDisplay {
         
         // Initialize or refresh masonry layout
         if (!this.masonry) {
-            const SimpleMasonry = window.SimpleMasonry;
             this.masonry = new SimpleMasonry('#photoGrid', {
                 itemSelector: '.photo-item',
                 columnWidth: 300,

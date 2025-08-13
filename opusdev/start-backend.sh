@@ -5,7 +5,7 @@ echo "Starting Lumen Backend Server..."
 echo
 
 # Navigate to backend directory  
-cd /home/cdc/Storage/NVMe/projects/wasenet/lumen-gcp/backend
+cd /home/cdc/Storage/NVMe/projects/wasenet/opusdev/backend
 
 # Activate virtual environment (Linux)
 source venv/bin/activate

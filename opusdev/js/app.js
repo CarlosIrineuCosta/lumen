@@ -25,6 +25,15 @@ class LumenApp {
         this.page = 1;
         this.loading = false;
         this.hasMore = true;
+        
+        // Global navigation context system
+        this.navigationContext = {
+            type: 'home', // home, discover, photographers, nearby, portfolio, user_photos, tag_photos
+            userId: null, // for user-specific contexts
+            tag: null, // for tag-specific contexts
+            searchQuery: null, // for search contexts
+            returnView: 'home' // what view to return to when closing viewer
+        };
         this.deferredPrompt = null;
         this.photoViewer = new PhotoViewer();
         this.masonry = null;
@@ -74,7 +83,7 @@ class LumenApp {
     }
     
     async checkAuth() {
-        // Check Firebase Auth state
+        // Check Firebase Auth state first
         if (typeof firebase !== 'undefined') {
             firebase.auth().onAuthStateChanged(async (user) => {
                 if (user) {
@@ -89,28 +98,30 @@ class LumenApp {
                         profile_image_url: user.photoURL
                     };
                     
-                    // Verify with backend
+                    // Try to get user profile from backend (non-blocking)
                     try {
-                        const response = await fetch(`${API_BASE_URL}/auth/status`, {
+                        const response = await fetch(`${API_BASE_URL}/users/me`, {
                             headers: {
                                 'Authorization': `Bearer ${token}`
                             }
                         });
                         
                         if (response.ok) {
-                            this.hideAuthModal();
-                            this.updateUserUI();
-                            this.loadPhotos();
+                            const profile = await response.json();
+                            // Update user data with backend profile if available
+                            this.user.display_name = profile.display_name || this.user.display_name;
+                            console.log('Backend profile loaded successfully');
                         } else {
-                            this.showAuthModal();
+                            console.log('Backend profile not available, using Firebase data');
                         }
                     } catch (error) {
-                        console.error('Backend auth check failed:', error);
-                        // Continue anyway if Firebase auth is valid
-                        this.hideAuthModal();
-                        this.updateUserUI();
-                        this.loadPhotos();
+                        console.log('Backend auth check failed, using Firebase data only:', error);
                     }
+                    
+                    // Always continue with Firebase auth - don't block on backend
+                    this.hideAuthModal();
+                    this.updateUserUI();
+                    this.loadPhotos();
                 } else {
                     // No user signed in
                     this.showAuthModal();
@@ -123,7 +134,13 @@ class LumenApp {
     }
     
     showAuthModal() {
-        document.getElementById('authModal')?.classList.remove('hidden');
+        const modal = document.getElementById('authModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            console.log('Auth modal shown');
+        } else {
+            console.error('Auth modal element not found');
+        }
     }
     
     hideAuthModal() {
@@ -158,6 +175,31 @@ class LumenApp {
             this.signInWithGoogle();
         });
         
+        // Profile dropdown
+        document.getElementById('profileBtn')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleProfileDropdown();
+        });
+        
+        document.getElementById('editProfileBtn')?.addEventListener('click', () => {
+            this.hideProfileDropdown();
+            this.showProfileModal();
+        });
+        
+        document.getElementById('viewProfileBtn')?.addEventListener('click', () => {
+            this.hideProfileDropdown();
+            this.showProfileView(); // Show dedicated profile view modal
+        });
+        
+        document.getElementById('logoutBtn')?.addEventListener('click', () => {
+            this.logout();
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', () => {
+            this.hideProfileDropdown();
+        });
+        
         // Close buttons
         document.getElementById('viewerClose')?.addEventListener('click', () => {
             document.getElementById('photoViewer')?.classList.add('hidden');
@@ -165,6 +207,25 @@ class LumenApp {
         
         document.getElementById('uploadClose')?.addEventListener('click', () => {
             document.getElementById('uploadModal')?.classList.add('hidden');
+        });
+        
+        // Profile modal close buttons
+        document.getElementById('profileClose')?.addEventListener('click', () => {
+            this.hideProfileModal();
+        });
+        
+        document.getElementById('cancelProfileEdit')?.addEventListener('click', () => {
+            this.hideProfileModal();
+        });
+        
+        // Profile view modal
+        document.getElementById('profileViewClose')?.addEventListener('click', () => {
+            this.hideProfileView();
+        });
+        
+        document.getElementById('editFromView')?.addEventListener('click', () => {
+            this.hideProfileView();
+            this.showProfileModal();
         });
         
         // File upload with drag & drop support
@@ -212,6 +273,25 @@ class LumenApp {
             this.uploadPhoto();
         });
         
+        // Profile editing
+        document.getElementById('changeImageBtn')?.addEventListener('click', () => {
+            document.getElementById('profileImageInput')?.click();
+        });
+        
+        document.getElementById('profileImageInput')?.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                this.handleProfileImageSelect(e.target.files[0]);
+            }
+        });
+        
+        document.getElementById('saveProfile')?.addEventListener('click', () => {
+            this.saveProfile();
+        });
+        
+        document.getElementById('profileUserType')?.addEventListener('change', (e) => {
+            this.toggleUserTypeFields(e.target.value);
+        });
+        
         // Infinite scroll
         window.addEventListener('scroll', () => {
             if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 1000) {
@@ -226,7 +306,11 @@ class LumenApp {
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(() => {
-                this.applyMasonryLayout();
+                if (this.masonry) {
+                    this.masonry.refresh();
+                } else if (this.photoDisplay && this.photoDisplay.masonry) {
+                    this.photoDisplay.masonry.refresh();
+                }
             }, 250);
         });
     }
@@ -236,6 +320,9 @@ class LumenApp {
         this.page = 1;
         this.photos = [];
         this.hasMore = true;
+        
+        // Update navigation context
+        this.updateNavigationContext(view);
         
         // Update active tab
         document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -267,33 +354,103 @@ class LumenApp {
         document.getElementById('loadingIndicator')?.classList.remove('hidden');
         
         try {
-            let endpoint = this.getEndpointForView(this.currentView);
-            
-            const response = await fetch(`${API_BASE_URL}${endpoint}?page=${this.page}&limit=20`, {
-                headers: {
-                    'Authorization': `Bearer ${this.authToken}`
+            // Handle different view types with different request patterns
+            if (this.currentView === 'photographers') {
+                await this.loadPhotographers();
+            } else {
+                let endpoint = this.getEndpointForView(this.currentView);
+                
+                // Check if we need authentication for this endpoint
+                const needsAuth = ['portfolio'].includes(this.currentView);
+                if (needsAuth && !this.authToken) {
+                    console.log('Authentication required for', this.currentView, 'but no token available');
+                    this.showAuthModal();
+                    return;
                 }
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                const newPhotos = data.photos || data.users || data; // Handle different response formats
                 
-                this.photos = [...this.photos, ...newPhotos];
-                this.hasMore = data.has_more !== false;
+                // Check if endpoint already has query parameters
+                const separator = endpoint.includes('?') ? '&' : '?';
+                const headers = {};
+                if (this.authToken) {
+                    headers['Authorization'] = `Bearer ${this.authToken}`;
+                }
                 
-                // Set display context and render
-                this.photoDisplay.setContext(this.currentView);
-                this.photoDisplay.renderPhotos(newPhotos, this.user, document.getElementById('photoGrid'));
+                const response = await fetch(`${API_BASE_URL}${endpoint}${separator}page=${this.page}&limit=20`, {
+                    headers
+                });
                 
-                this.page++;
+                if (response.ok) {
+                    const data = await response.json();
+                    const newPhotos = data.photos || data; // Handle different response formats
+                    
+                    this.photos = [...this.photos, ...newPhotos];
+                    this.hasMore = data.has_more !== false;
+                    
+                    // Set display context and render
+                    this.photoDisplay.setContext(this.currentView);
+                    this.photoDisplay.renderPhotos(newPhotos, this.user, document.getElementById('photoGrid'));
+                    
+                    this.page++;
+                } else if (response.status === 401) {
+                    console.log('Authentication failed, clearing auth state');
+                    this.clearAuthState();
+                    this.showAuthModal();
+                } else {
+                    console.error('API request failed:', response.status, response.statusText);
+                    this.photoDisplay.showEmptyState();
+                }
             }
         } catch (error) {
-            console.error('Failed to load photos:', error);
-            this.photoDisplay.showEmptyState();
+            console.error('Failed to load photos (network/CORS error):', error);
+            // If it's a network error and we were trying to authenticate, show auth modal
+            if (this.currentView === 'portfolio' || this.authToken) {
+                console.log('Network error during authenticated request, may need re-authentication');
+                this.clearAuthState();
+                this.showAuthModal();
+            } else {
+                this.photoDisplay.showEmptyState();
+            }
         } finally {
             this.loading = false;
             document.getElementById('loadingIndicator')?.classList.add('hidden');
+        }
+    }
+    
+    async loadPhotographers() {
+        try {
+            const searchQuery = {
+                user_type: 'photographer',
+                page: this.page,
+                limit: 20
+            };
+            
+            const response = await fetch(`${API_BASE_URL}/users/search`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${this.authToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(searchQuery)
+            });
+            
+            if (response.ok) {
+                const photographers = await response.json();
+                
+                this.photos = [...this.photos, ...photographers];
+                this.hasMore = photographers.length === 20; // Assume more if we got a full page
+                
+                // Set display context and render
+                this.photoDisplay.setContext(this.currentView);
+                this.photoDisplay.renderPhotos(photographers, this.user, document.getElementById('photoGrid'));
+                
+                this.page++;
+            } else {
+                console.error('Failed to load photographers:', response.status, response.statusText);
+                this.photoDisplay.showEmptyState();
+            }
+        } catch (error) {
+            console.error('Error loading photographers:', error);
+            this.photoDisplay.showEmptyState();
         }
     }
     
@@ -312,18 +469,14 @@ class LumenApp {
                 // Discovery: All public photos for exploration
                 return '/photos/recent'; // Using same endpoint until discover is built
                 
-            case 'photographers':
-                // Photographer discovery
-                return '/users/photographers';
-                
             case 'nearby':
-                // Geographic discovery
-                return '/photos/nearby?radius=30';
-                
+                // Geographic discovery (temporarily using recent until nearby is implemented)
+                return '/photos/recent';                
+            
             case 'portfolio':
                 // User's portfolio photos only
-                return `/photos/user/${this.user?.uid}?portfolio_only=true`;
-                
+                return '/photos/my-photos?portfolio_only=true';
+
             default:
                 return '/photos/recent';
         }
@@ -344,6 +497,27 @@ class LumenApp {
             const { photo, x, y } = e.detail;
             this.showPhotoContextMenu(photo, x, y);
         });
+    }
+    
+    /**
+     * Show photo viewer for a photo or series
+     */
+    updateNavigationContext(view, options = {}) {
+        this.navigationContext = {
+            type: view,
+            userId: options.userId || null,
+            tag: options.tag || null,
+            searchQuery: options.searchQuery || null,
+            returnView: this.currentView // Store current view to return to
+        };
+    }
+
+    showPhotoViewer(photo, isSeries) {
+        // Get all photos from current view for navigation
+        const allPhotos = this.photos || [];
+        
+        // Open the photo viewer with navigation context
+        this.photoViewer.open(photo, allPhotos, isSeries, this.navigationContext);
     }
     
     /**
@@ -789,7 +963,6 @@ class LumenApp {
             this.masonry = this.photoDisplay.masonry;
         }
     }
-    }
     
     async refreshPhotoStreams() {
         // Reset pagination and reload photos
@@ -828,6 +1001,543 @@ class LumenApp {
         }, 3000);
     }
     
+    toggleProfileDropdown() {
+        const dropdown = document.getElementById('profileDropdown');
+        dropdown?.classList.toggle('hidden');
+    }
+    
+    hideProfileDropdown() {
+        const dropdown = document.getElementById('profileDropdown');
+        dropdown?.classList.add('hidden');
+    }
+    
+    async logout() {
+        try {
+            // Sign out from Firebase
+            if (typeof firebase !== 'undefined' && firebase.auth().currentUser) {
+                await firebase.auth().signOut();
+            }
+            
+            // Clear local data
+            this.user = null;
+            this.authToken = null;
+            this.photos = [];
+            localStorage.removeItem('authToken');
+            
+            // Clear UI
+            this.hideProfileDropdown();
+            this.hideProfileModal();
+            this.hideProfileView();
+            document.getElementById('uploadModal')?.classList.add('hidden');
+            
+            // Clear photo grid
+            const grid = document.getElementById('photoGrid');
+            if (grid) grid.innerHTML = '';
+            
+            // Reset to home view
+            this.currentView = 'home';
+            this.page = 1;
+            this.hasMore = true;
+            
+            // Update tab state
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.view === 'home');
+            });
+            
+            // Show auth modal
+            this.showAuthModal();
+            
+            this.showNotification('Logged out successfully', 'success');
+            
+        } catch (error) {
+            console.error('Logout error:', error);
+            this.showNotification('Logout failed', 'error');
+        }
+    }
+
+    async showProfileView(userId = null) {
+        if (!userId && !this.user) {
+            this.showNotification('Please log in to view your profile', 'error');
+            return;
+        }
+        
+        // Show modal
+        document.getElementById('profileViewModal')?.classList.remove('hidden');
+        
+        // Show/hide edit button based on whether it's own profile
+        const ownActions = document.getElementById('ownProfileActions');
+        if (userId && userId !== this.user?.uid) {
+            ownActions?.classList.add('hidden');
+        } else {
+            ownActions?.classList.remove('hidden');
+        }
+        
+        // Load profile data
+        await this.loadProfileForView(userId || this.user.uid);
+    }
+    
+    hideProfileView() {
+        document.getElementById('profileViewModal')?.classList.add('hidden');
+    }
+    
+    async loadProfileForView(userId) {
+        try {
+            const endpoint = userId === this.user?.uid ? '/users/me' : `/users/${userId}/public`;
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                headers: {
+                    'Authorization': `Bearer ${this.authToken}`
+                }
+            });
+            
+            if (response.ok) {
+                const profile = await response.json();
+                this.populateProfileView(profile);
+            } else {
+                console.error('Failed to load profile data');
+                this.showNotification('Failed to load profile', 'error');
+            }
+        } catch (error) {
+            console.error('Error loading profile:', error);
+            this.showNotification('Error loading profile', 'error');
+        }
+    }
+    
+    populateProfileView(profile) {
+        // Basic information
+        document.getElementById('viewDisplayName').textContent = profile.display_name || 'Unknown';
+        document.getElementById('viewUsername').textContent = profile.username ? `@${profile.username}` : '';
+        document.getElementById('viewUserType').textContent = profile.user_type?.replace(/_/g, ' ') || '';
+        document.getElementById('viewTagline').textContent = profile.tagline || '';
+        
+        // Profile image
+        const profileImg = document.getElementById('viewProfileImage');
+        profileImg.src = profile.profile_image_url || 
+            `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.display_name || 'U')}&background=4a90e2&color=fff`;
+        
+        // Bio
+        const bioSection = document.getElementById('bioSection');
+        const bioParagraph = document.getElementById('viewBio');
+        if (profile.bio) {
+            bioParagraph.textContent = profile.bio;
+            bioSection.classList.remove('hidden');
+        } else {
+            bioSection.classList.add('hidden');
+        }
+        
+        // Artistic statement
+        const artisticSection = document.getElementById('artisticSection');
+        const artisticParagraph = document.getElementById('viewArtisticStatement');
+        if (profile.artistic_statement) {
+            artisticParagraph.textContent = profile.artistic_statement;
+            artisticSection.classList.remove('hidden');
+        } else {
+            artisticSection.classList.add('hidden');
+        }
+        
+        // Mission statement
+        const missionSection = document.getElementById('missionSection');
+        const missionParagraph = document.getElementById('viewMissionStatement');
+        if (profile.mission_statement) {
+            missionParagraph.textContent = profile.mission_statement;
+            missionSection.classList.remove('hidden');
+        } else {
+            missionSection.classList.add('hidden');
+        }
+        
+        // Professional details
+        document.getElementById('viewExperience').textContent = profile.experience_level?.replace(/_/g, ' ') || 'Not specified';
+        document.getElementById('viewCity').textContent = profile.city || 'Not specified';
+        document.getElementById('viewLocationPreference').textContent = profile.location_preference?.replace(/_/g, ' ') || 'Not specified';
+        
+        // Photography styles for photographers
+        const photographySection = document.getElementById('photographyStylesViewSection');
+        if (profile.user_type === 'photographer' && profile.photography_styles?.length > 0) {
+            const stylesContainer = document.getElementById('viewPhotographyStyles');
+            stylesContainer.innerHTML = profile.photography_styles.map(style => 
+                `<span class="style-tag">${style.replace(/_/g, ' ')}</span>`
+            ).join('');
+            photographySection.classList.remove('hidden');
+        } else {
+            photographySection.classList.add('hidden');
+        }
+        
+        // Model details
+        const modelSection = document.getElementById('modelDetailsViewSection');
+        if (profile.user_type === 'model' && profile.model_details) {
+            const modelContainer = document.getElementById('viewModelDetails');
+            const details = [];
+            if (profile.model_details.gender) details.push(`<div class="detail-item"><span class="detail-label">Gender:</span><span class="detail-value">${profile.model_details.gender.replace(/_/g, ' ')}</span></div>`);
+            if (profile.model_details.age) details.push(`<div class="detail-item"><span class="detail-label">Age:</span><span class="detail-value">${profile.model_details.age}</span></div>`);
+            if (profile.model_details.height) details.push(`<div class="detail-item"><span class="detail-label">Height:</span><span class="detail-value">${profile.model_details.height}</span></div>`);
+            if (profile.model_details.weight) details.push(`<div class="detail-item"><span class="detail-label">Build:</span><span class="detail-value">${profile.model_details.weight.replace(/_/g, ' ')}</span></div>`);
+            
+            modelContainer.innerHTML = details.join('');
+            modelSection.classList.remove('hidden');
+        } else {
+            modelSection.classList.add('hidden');
+        }
+        
+        // Availability
+        const availabilityContainer = document.getElementById('viewAvailability');
+        const availability = profile.availability_data || {};
+        const availabilityItems = [];
+        
+        if (availability.available_for_hire) {
+            availabilityItems.push(`<div class="availability-status"><div class="availability-indicator available"></div><span>Available for hire</span></div>`);
+        }
+        if (availability.available_for_collaborations) {
+            availabilityItems.push(`<div class="availability-status"><div class="availability-indicator available"></div><span>Available for collaborations</span></div>`);
+        }
+        if (availability.rate_range) {
+            availabilityItems.push(`<div class="availability-status"><span><strong>Rate range:</strong> ${availability.rate_range}</span></div>`);
+        }
+        
+        if (availabilityItems.length > 0) {
+            availabilityContainer.innerHTML = availabilityItems.join('');
+        } else {
+            availabilityContainer.innerHTML = '<div class="availability-status"><div class="availability-indicator unavailable"></div><span>Availability not specified</span></div>';
+        }
+    }
+
+    async showProfileModal(readOnly = false) {
+        if (!this.user) {
+            this.showNotification('Please log in to edit your profile', 'error');
+            return;
+        }
+        
+        // Show modal
+        document.getElementById('profileModal')?.classList.remove('hidden');
+        
+        // Always in edit mode for this modal now
+        const modalTitle = document.querySelector('#profileModal h2');
+        modalTitle.textContent = 'Edit Profile';
+        
+        // Load current profile data
+        await this.loadCurrentProfile();
+        
+        // Load photography styles for selection
+        await this.loadPhotographyStyles();
+    }
+    
+    setFormReadOnly(readOnly) {
+        const formElements = document.querySelectorAll('#profileModal input, #profileModal textarea, #profileModal select');
+        formElements.forEach(element => {
+            element.disabled = readOnly;
+            if (readOnly) {
+                element.style.opacity = '0.7';
+                element.style.cursor = 'default';
+            } else {
+                element.style.opacity = '1';
+                element.style.cursor = '';
+            }
+        });
+        
+        // Hide/show change image button
+        const changeImageBtn = document.getElementById('changeImageBtn');
+        if (changeImageBtn) {
+            changeImageBtn.style.display = readOnly ? 'none' : 'flex';
+        }
+    }
+    
+    hideProfileModal() {
+        document.getElementById('profileModal')?.classList.add('hidden');
+    }
+    
+    async loadCurrentProfile() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/users/me`, {
+                headers: {
+                    'Authorization': `Bearer ${this.authToken}`
+                }
+            });
+            
+            if (response.ok) {
+                const profile = await response.json();
+                this.populateProfileForm(profile);
+            } else {
+                console.error('Failed to load profile data');
+            }
+        } catch (error) {
+            console.error('Error loading profile:', error);
+        }
+    }
+    
+    populateProfileForm(profile) {
+        // Basic information
+        document.getElementById('profileDisplayName').value = profile.display_name || '';
+        document.getElementById('profileUsername').value = profile.username || '';
+        document.getElementById('profileBio').value = profile.bio || '';
+        document.getElementById('profileCity').value = profile.city || '';
+        
+        // Professional details
+        document.getElementById('profileUserType').value = profile.user_type || '';
+        document.getElementById('profileExperience').value = profile.experience_level || '';
+        document.getElementById('profileTagline').value = profile.tagline || '';
+        
+        // Profile image
+        const profileImg = document.getElementById('profileImagePreview');
+        profileImg.src = profile.profile_image_url || 
+            `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.display_name || 'U')}&background=4a90e2&color=fff`;
+        
+        // Model details (show/hide based on user type)
+        this.toggleUserTypeFields(profile.user_type);
+        if (profile.user_type === 'model') {
+            document.getElementById('profileGender').value = profile.model_details?.gender || '';
+            document.getElementById('profileAge').value = profile.model_details?.age || '';
+            document.getElementById('profileHeight').value = profile.model_details?.height || '';
+            document.getElementById('profileWeight').value = profile.model_details?.weight || '';
+        }
+        
+        // Extended fields
+        document.getElementById('profileArtisticStatement').value = profile.artistic_statement || '';
+        document.getElementById('profileMissionStatement').value = profile.mission_statement || '';
+        
+        // Availability
+        const availability = profile.availability_data || {};
+        document.getElementById('profileAvailableForHire').checked = availability.available_for_hire || false;
+        document.getElementById('profileAvailableForCollabs').checked = availability.available_for_collaborations || false;
+        document.getElementById('profileRateRange').value = availability.rate_range || '';
+        
+        // Location preference
+        document.getElementById('profileLocationPreference').value = profile.location_preference || '';
+        
+        // Photography styles (for photographers)
+        if (profile.user_type === 'photographer' && profile.photography_styles) {
+            profile.photography_styles.forEach(style => {
+                const checkbox = document.querySelector(`input[name="photography_styles"][value="${style}"]`);
+                if (checkbox) checkbox.checked = true;
+            });
+        }
+    }
+    
+    async loadPhotographyStyles() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/users/styles`);
+            if (response.ok) {
+                const styles = await response.json();
+                this.renderPhotographyStyles(styles);
+            }
+        } catch (error) {
+            console.error('Error loading photography styles:', error);
+        }
+    }
+    
+    renderPhotographyStyles(styles) {
+        const container = document.getElementById('photographyStyles');
+        container.innerHTML = styles.map(style => `
+            <label class="checkbox-label">
+                <input type="checkbox" name="photography_styles" value="${style}">
+                <span class="checkmark"></span>
+                ${style.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+            </label>
+        `).join('');
+    }
+    
+    toggleUserTypeFields(userType) {
+        const modelSection = document.getElementById('modelDetailsSection');
+        const photographySection = document.getElementById('photographyStylesSection');
+        
+        // Show/hide model-specific fields
+        if (userType === 'model') {
+            modelSection?.classList.remove('hidden');
+        } else {
+            modelSection?.classList.add('hidden');
+        }
+        
+        // Show/hide photography styles for photographers
+        if (userType === 'photographer') {
+            photographySection?.classList.remove('hidden');
+        } else {
+            photographySection?.classList.add('hidden');
+        }
+    }
+    
+    async handleProfileImageSelect(file) {
+        if (!file.type.startsWith('image/')) {
+            this.showNotification('Please select an image file', 'error');
+            return;
+        }
+        
+        // Check file size (5MB limit)
+        if (file.size > 5 * 1024 * 1024) {
+            this.showNotification('Image must be less than 5MB', 'error');
+            return;
+        }
+        
+        // Show preview
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            document.getElementById('profileImagePreview').src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+        
+        this.selectedProfileImage = file;
+    }
+    
+    async saveProfile() {
+        const saveBtn = document.getElementById('saveProfile');
+        const originalText = saveBtn.textContent;
+        saveBtn.textContent = 'Saving...';
+        saveBtn.disabled = true;
+        
+        try {
+            // Collect form data
+            const profileData = {
+                display_name: document.getElementById('profileDisplayName').value.trim(),
+                username: document.getElementById('profileUsername').value.trim(),
+                bio: document.getElementById('profileBio').value.trim(),
+                city: document.getElementById('profileCity').value.trim(),
+                user_type: document.getElementById('profileUserType').value,
+                experience_level: document.getElementById('profileExperience').value,
+                tagline: document.getElementById('profileTagline').value.trim(),
+                artistic_statement: document.getElementById('profileArtisticStatement').value.trim(),
+                mission_statement: document.getElementById('profileMissionStatement').value.trim(),
+                location_preference: document.getElementById('profileLocationPreference').value
+            };
+            
+            // Add model-specific data
+            if (profileData.user_type === 'model') {
+                profileData.model_details = {
+                    gender: document.getElementById('profileGender').value,
+                    age: parseInt(document.getElementById('profileAge').value) || null,
+                    height: document.getElementById('profileHeight').value.trim(),
+                    weight: document.getElementById('profileWeight').value
+                };
+            }
+            
+            // Add photography styles for photographers
+            if (profileData.user_type === 'photographer') {
+                const selectedStyles = Array.from(document.querySelectorAll('input[name="photography_styles"]:checked'))
+                    .map(cb => cb.value);
+                profileData.photography_styles = selectedStyles;
+            }
+            
+            // Add availability data
+            profileData.availability_data = {
+                available_for_hire: document.getElementById('profileAvailableForHire').checked,
+                available_for_collaborations: document.getElementById('profileAvailableForCollabs').checked,
+                rate_range: document.getElementById('profileRateRange').value.trim()
+            };
+            
+            // Upload profile image first if selected
+            if (this.selectedProfileImage) {
+                await this.uploadProfileImage();
+            }
+            
+            // Update profile
+            const response = await fetch(`${API_BASE_URL}/users/me`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${this.authToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(profileData)
+            });
+            
+            if (response.ok) {
+                const updatedProfile = await response.json();
+                
+                // Update local user data
+                this.user.display_name = updatedProfile.display_name;
+                if (updatedProfile.profile_image_url) {
+                    this.user.profile_image_url = updatedProfile.profile_image_url;
+                }
+                
+                // Update UI
+                this.updateUserUI();
+                this.hideProfileModal();
+                this.showNotification('Profile updated successfully!', 'success');
+            } else {
+                const error = await response.json();
+                throw new Error(error.detail || 'Failed to update profile');
+            }
+            
+        } catch (error) {
+            console.error('Profile update error:', error);
+            this.showNotification('Failed to update profile: ' + error.message, 'error');
+        } finally {
+            saveBtn.textContent = originalText;
+            saveBtn.disabled = false;
+        }
+    }
+    
+    async uploadProfileImage() {
+        if (!this.selectedProfileImage) return;
+        
+        try {
+            const formData = new FormData();
+            formData.append('file', this.selectedProfileImage);
+            
+            const response = await fetch(`${API_BASE_URL}/users/me/profile-image`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${this.authToken}`
+                },
+                body: formData
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                // Update the preview and user data
+                this.user.profile_image_url = result.image_url;
+                this.selectedProfileImage = null;
+            } else {
+                throw new Error('Failed to upload profile image');
+            }
+        } catch (error) {
+            console.error('Profile image upload error:', error);
+            throw error;
+        }
+    }
+
+    async validateTokenAndLoadUser(token) {
+        try {
+            // Verify token with backend and get user profile
+            const response = await fetch(`${API_BASE_URL}/users/me`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.ok) {
+                const profile = await response.json();
+                // Set user data from profile
+                this.user = {
+                    uid: profile.uid,
+                    email: profile.email,
+                    display_name: profile.display_name,
+                    profile_image_url: profile.profile_image_url
+                };
+                
+                // Update UI
+                this.hideAuthModal();
+                this.updateUserUI();
+                this.loadPhotos();
+                
+                console.log('Token validated and user profile loaded');
+                return true;
+            } else {
+                console.log('Token validation failed:', response.status);
+                // Clear invalid token and show auth modal
+                this.clearAuthState();
+                return false;
+            }
+        } catch (error) {
+            console.error('Token validation error (network/CORS/server issue):', error);
+            // Clear invalid token on any error (network, CORS, 500, etc.)
+            this.clearAuthState();
+            return false;
+        }
+    }
+    
+    clearAuthState() {
+        // Clear all authentication state
+        localStorage.removeItem('authToken');
+        this.authToken = null;
+        this.user = null;
+        console.log('Authentication state cleared - user will need to sign in again');
+    }
+
     async signInWithGoogle() {
         // Use Firebase Auth for Google sign-in
         if (typeof firebase === 'undefined') {

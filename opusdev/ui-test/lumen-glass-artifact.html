@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#000000">
+    <title>Lumen Glass UI Preview</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-primary: #000000;
+            --bg-secondary: #0a0a0a;
+            --bg-tertiary: #141414;
+            --bg-card: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --text-tertiary: #666666;
+            --accent: #ffd700;
+            --border: #2a2a2a;
+            --hover: rgba(255, 255, 255, 0.05);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+            padding-bottom: 60px;
+        }
+        
+        /* Header Navigation */
+        .header-nav {
+            position: sticky;
+            top: 0;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            z-index: 100;
+            padding: 0 16px;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            gap: 24px;
+            height: 48px;
+            align-items: center;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        
+        .nav-tabs::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .nav-tab {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+            padding: 4px 0;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        
+        .nav-tab.active {
+            color: var(--text-primary);
+            border-bottom-color: var(--text-primary);
+        }
+        
+        /* Search Bar */
+        .search-container {
+            padding: 16px;
+            background: var(--bg-secondary);
+        }
+        
+        .search-bar {
+            width: 100%;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 10px 20px;
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s;
+        }
+        
+        .search-bar:focus {
+            border-color: var(--text-secondary);
+            background: var(--bg-card);
+        }
+        
+        .search-bar::placeholder {
+            color: var(--text-tertiary);
+        }
+        
+        /* View Container */
+        .view {
+            display: none;
+            min-height: 400px;
+        }
+        
+        .view.active {
+            display: block;
+        }
+        
+        /* Member List */
+        .member-list {
+            padding: 16px;
+        }
+        
+        .member-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .member-card:hover {
+            background: var(--hover);
+            margin: 0 -16px;
+            padding-left: 16px;
+            padding-right: 16px;
+        }
+        
+        .member-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+        
+        .member-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: var(--bg-card);
+            border: 2px solid var(--bg-tertiary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .member-details {
+            flex: 1;
+        }
+        
+        .member-name {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 2px;
+        }
+        
+        .member-photos {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .member-photo-thumb {
+            width: 80px;
+            height: 80px;
+            background: var(--bg-card);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: var(--text-tertiary);
+        }
+        
+        .follow-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .follow-btn:hover {
+            background: var(--text-primary);
+            color: var(--bg-primary);
+        }
+        
+        .follow-btn.following {
+            background: var(--text-primary);
+            color: var(--bg-primary);
+        }
+        
+        /* Photo Grid */
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 2px;
+            padding: 2px;
+        }
+        
+        .photo-grid-item {
+            aspect-ratio: 1;
+            background: var(--bg-card);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: var(--text-tertiary);
+        }
+        
+        .photo-grid-item:hover .photo-overlay {
+            opacity: 1;
+        }
+        
+        .photo-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            padding: 8px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .photo-info {
+            font-size: 11px;
+            color: var(--text-primary);
+        }
+        
+        /* Notifications */
+        .notifications-panel {
+            padding: 16px;
+        }
+        
+        .notification-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .notification-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--bg-card);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        .notification-content {
+            flex: 1;
+        }
+        
+        .notification-text {
+            margin-bottom: 4px;
+        }
+        
+        .notification-user {
+            font-weight: 600;
+        }
+        
+        .notification-action {
+            color: var(--text-secondary);
+        }
+        
+        .appreciation-icon {
+            color: var(--accent);
+        }
+        
+        .notification-time {
+            color: var(--text-tertiary);
+            font-size: 12px;
+        }
+        
+        .notification-photo {
+            width: 56px;
+            height: 56px;
+            background: var(--bg-card);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            color: var(--text-tertiary);
+        }
+        
+        /* Tag Selector Demo */
+        .tag-selector-demo {
+            padding: 16px;
+            background: var(--bg-secondary);
+            margin: 16px;
+            border-radius: 8px;
+        }
+        
+        .tag-category {
+            margin-bottom: 12px;
+        }
+        
+        .tag-category label {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .tag-dropdown {
+            width: 100%;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            border-radius: 4px;
+            outline: none;
+            cursor: pointer;
+        }
+        
+        .tag-dropdown:focus {
+            border-color: var(--text-secondary);
+        }
+        
+        .tag-count {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-top: 12px;
+            font-size: 13px;
+        }
+        
+        /* Upload Properties */
+        .property-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+        
+        .property-toggle {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .property-toggle input[type="radio"] {
+            accent-color: var(--accent);
+        }
+        
+        .property-toggle label {
+            color: var(--text-primary);
+            font-size: 13px;
+            cursor: pointer;
+        }
+        
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            z-index: 100;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 16px;
+            text-decoration: none;
+            color: var(--text-secondary);
+            transition: color 0.2s;
+            cursor: pointer;
+        }
+        
+        .nav-item.active {
+            color: var(--text-primary);
+        }
+        
+        .nav-icon {
+            font-size: 24px;
+        }
+        
+        /* Patron Badge */
+        .patron-badge {
+            background: var(--accent);
+            color: var(--bg-primary);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-left: 8px;
+            display: inline-block;
+        }
+        
+        /* Add Button */
+        .add-btn {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            transition: transform 0.2s;
+            z-index: 99;
+        }
+        
+        .add-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        /* Demo Notice */
+        .demo-notice {
+            background: var(--accent);
+            color: var(--bg-primary);
+            padding: 8px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Demo Notice -->
+    <div class="demo-notice">
+        LUMEN UI PROTOTYPE - Glass-Inspired Dark Interface
+    </div>
+    
+    <!-- Header Navigation -->
+    <header class="header-nav">
+        <nav class="nav-tabs">
+            <span class="nav-tab" onclick="showView('explore')">Explore</span>
+            <span class="nav-tab active" onclick="showView('members')">Members</span>
+            <span class="nav-tab" onclick="showView('discover')">Discover</span>
+            <span class="nav-tab" onclick="showView('upload')">Upload Demo</span>
+        </nav>
+    </header>
+    
+    <!-- Search -->
+    <div class="search-container">
+        <input type="text" class="search-bar" placeholder="Search photographers, tags, locations...">
+    </div>
+    
+    <!-- Content Container -->
+    <div id="content">
+        <!-- Members View -->
+        <div class="view active" id="membersView">
+            <div class="member-list">
+                <!-- Member 1 -->
+                <div class="member-card">
+                    <div class="member-info">
+                        <div class="member-avatar">👤</div>
+                        <div class="member-details">
+                            <div class="member-name">Xinyi Deng</div>
+                        </div>
+                    </div>
+                    <div class="member-photos">
+                        <div class="member-photo-thumb">Urban<br>B&W</div>
+                        <div class="member-photo-thumb">Portrait<br>Film</div>
+                        <div class="member-photo-thumb">Street<br>Color</div>
+                    </div>
+                    <button class="follow-btn" onclick="toggleFollow(this)">
+                        <span>👤</span>
+                        <span class="follow-text">+</span>
+                    </button>
+                </div>
+                
+                <!-- Member 2 -->
+                <div class="member-card">
+                    <div class="member-info">
+                        <div class="member-avatar">📷</div>
+                        <div class="member-details">
+                            <div class="member-name">
+                                Will Kinsler
+                                <span class="patron-badge">Patron</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="member-photos">
+                        <div class="member-photo-thumb">Studio<br>Fashion</div>
+                        <div class="member-photo-thumb">Portrait<br>B&W</div>
+                        <div class="member-photo-thumb">Fine Art<br>Film</div>
+                    </div>
+                    <button class="follow-btn following" onclick="toggleFollow(this)">
+                        <span>👤</span>
+                        <span class="follow-text">✓</span>
+                    </button>
+                </div>
+                
+                <!-- Member 3 -->
+                <div class="member-card">
+                    <div class="member-info">
+                        <div class="member-avatar">🎨</div>
+                        <div class="member-details">
+                            <div class="member-name">Sarah Chen</div>
+                        </div>
+                    </div>
+                    <div class="member-photos">
+                        <div class="member-photo-thumb">Nature<br>Color</div>
+                        <div class="member-photo-thumb">Landscape<br>Film</div>
+                        <div class="member-photo-thumb">Abstract<br>B&W</div>
+                    </div>
+                    <button class="follow-btn" onclick="toggleFollow(this)">
+                        <span>👤</span>
+                        <span class="follow-text">+</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Explore View -->
+        <div class="view" id="exploreView">
+            <div class="notifications-panel">
+                <!-- Notification 1 -->
+                <div class="notification-item">
+                    <div class="notification-avatar">✨</div>
+                    <div class="notification-content">
+                        <div class="notification-text">
+                            <span class="notification-user">Kat Zdan</span>
+                            <span class="notification-action">
+                                <span class="appreciation-icon">✨</span>
+                                appreciated your photo
+                            </span>
+                        </div>
+                        <div class="notification-time">40 minutes ago</div>
+                    </div>
+                    <div class="notification-photo">Urban<br>Portrait</div>
+                </div>
+                
+                <!-- Notification 2 -->
+                <div class="notification-item">
+                    <div class="notification-avatar">💬</div>
+                    <div class="notification-content">
+                        <div class="notification-text">
+                            <span class="notification-user">Michael B.</span>
+                            commented: "Beautiful use of natural light!"
+                        </div>
+                        <div class="notification-time">2 hours ago</div>
+                    </div>
+                    <div class="notification-photo">Studio<br>B&W</div>
+                </div>
+                
+                <!-- Notification 3 -->
+                <div class="notification-item">
+                    <div class="notification-avatar">✨</div>
+                    <div class="notification-content">
+                        <div class="notification-text">
+                            <span class="notification-user">Anonymous</span>
+                            <span class="notification-action">
+                                Your photo received <strong>23 appreciations</strong> this week
+                            </span>
+                        </div>
+                        <div class="notification-time">Weekly summary</div>
+                    </div>
+                    <div class="notification-photo">📊</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Discover View -->
+        <div class="view" id="discoverView">
+            <div class="photo-grid">
+                <div class="photo-grid-item">
+                    <div class="photo-overlay">
+                        <div class="photo-info">Urban • B&W</div>
+                    </div>
+                    Photo 1
+                </div>
+                <div class="photo-grid-item">
+                    <div class="photo-overlay">
+                        <div class="photo-info">Portrait • Film</div>
+                    </div>
+                    Photo 2
+                </div>
+                <div class="photo-grid-item">
+                    <div class="photo-overlay">
+                        <div class="photo-info">Studio • Fashion</div>
+                    </div>
+                    Photo 3
+                </div>
+                <div class="photo-grid-item">
+                    <div class="photo-overlay">
+                        <div class="photo-info">Nature • Color</div>
+                    </div>
+                    Photo 4
+                </div>
+                <div class="photo-grid-item">
+                    <div class="photo-overlay">
+                        <div class="photo-info">Fine Art • B&W</div>
+                    </div>
+                    Photo 5
+                </div>
+                <div class="photo-grid-item">
+                    <div class="photo-overlay">
+                        <div class="photo-info">Documentary</div>
+                    </div>
+                    Photo 6
+                </div>
+            </div>
+        </div>
+        
+        <!-- Upload Demo View -->
+        <div class="view" id="uploadView">
+            <div class="tag-selector-demo">
+                <h3 style="margin-bottom: 16px; font-size: 18px;">Smart Tag System (Max 3 Tags)</h3>
+                
+                <div class="tag-category">
+                    <label>Setting (Required)</label>
+                    <select class="tag-dropdown" onchange="updateTagCount()">
+                        <option value="">Select...</option>
+                        <option>Studio</option>
+                        <option>Urban</option>
+                        <option>Nature</option>
+                        <option>Indoor</option>
+                        <option>Underwater</option>
+                    </select>
+                </div>
+                
+                <div class="tag-category">
+                    <label>Style (Required)</label>
+                    <select class="tag-dropdown" onchange="updateTagCount()">
+                        <option value="">Select...</option>
+                        <option>Portrait</option>
+                        <option>Fashion</option>
+                        <option>Fine Art</option>
+                        <option>Documentary</option>
+                        <option>Editorial</option>
+                        <option>Boudoir</option>
+                    </select>
+                </div>
+                
+                <div class="tag-category">
+                    <label>Content (Optional)</label>
+                    <select class="tag-dropdown" onchange="updateTagCount()">
+                        <option value="">None</option>
+                        <option>Artistic Nude</option>
+                        <option>Implied Nude</option>
+                        <option>Lingerie</option>
+                        <option>Swimwear</option>
+                    </select>
+                </div>
+                
+                <div class="tag-count" id="tagCount">0 / 3 tags selected</div>
+                
+                <h4 style="margin-top: 24px; margin-bottom: 12px; color: var(--text-secondary);">Image Properties (Auto-detected)</h4>
+                
+                <div class="property-group">
+                    <div class="property-toggle">
+                        <input type="radio" name="colorMode" id="color" checked>
+                        <label for="color">Color</label>
+                    </div>
+                    <div class="property-toggle">
+                        <input type="radio" name="colorMode" id="bw">
+                        <label for="bw">B&W</label>
+                    </div>
+                    <div class="property-toggle">
+                        <input type="radio" name="colorMode" id="mono">
+                        <label for="mono">Monochrome</label>
+                    </div>
+                </div>
+                
+                <div class="property-group">
+                    <div class="property-toggle">
+                        <input type="radio" name="orientation" id="landscape" checked>
+                        <label for="landscape">Landscape</label>
+                    </div>
+                    <div class="property-toggle">
+                        <input type="radio" name="orientation" id="portrait">
+                        <label for="portrait">Portrait</label>
+                    </div>
+                    <div class="property-toggle">
+                        <input type="radio" name="orientation" id="square">
+                        <label for="square">Square</label>
+                    </div>
+                </div>
+                
+                <p style="margin-top: 16px; color: var(--text-tertiary); font-size: 12px;">
+                    Properties are auto-detected using client-side Canvas API analysis. 
+                    User can override if detection is incorrect. No AI or server processing required.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Button -->
+    <button class="add-btn">+</button>
+    
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <span class="nav-item" onclick="setActiveNav(this)">
+            <span class="nav-icon">🏠</span>
+        </span>
+        <span class="nav-item" onclick="setActiveNav(this)">
+            <span class="nav-icon">🔍</span>
+        </span>
+        <span class="nav-item active" onclick="setActiveNav(this)">
+            <span class="nav-icon">👤</span>
+        </span>
+        <span class="nav-item" onclick="showView('explore'); setActiveNav(this)">
+            <span class="nav-icon">🔔</span>
+        </span>
+    </nav>
+    
+    <script>
+        function showView(viewName) {
+            // Hide all views
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            
+            // Show selected view
+            document.getElementById(viewName + 'View').classList.add('active');
+            
+            // Update nav tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.textContent.toLowerCase().includes(viewName.toLowerCase())) {
+                    tab.classList.add('active');
+                }
+            });
+        }
+        
+        function toggleFollow(btn) {
+            btn.classList.toggle('following');
+            const text = btn.querySelector('.follow-text');
+            text.textContent = btn.classList.contains('following') ? '✓' : '+';
+        }
+        
+        function updateTagCount() {
+            const selects = document.querySelectorAll('.tag-dropdown');
+            let count = 0;
+            selects.forEach(select => {
+                if (select.value) count++;
+            });
+            document.getElementById('tagCount').textContent = `${count} / 3 tags selected`;
+            
+            // Validate combinations
+            const setting = selects[0].value;
+            const style = selects[1].value;
+            
+            if (setting === 'Urban' && style === 'Boudoir') {
+                alert('Invalid combination: Boudoir requires Indoor or Studio setting');
+                selects[1].value = '';
+                updateTagCount();
+            }
+        }
+        
+        function setActiveNav(item) {
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+        }
+    </script>
+</body>
+</html>

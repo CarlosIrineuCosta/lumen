@@ -10,6 +10,8 @@ export class PhotoViewer {
         this.maxSeriesPhotos = 5;
         this.allPhotos = [];
         this.currentUserPhotos = [];
+        this.navigationContext = null;
+        this.previousMode = null; // Remember what mode we were in before opening
         
         this.initElements();
         this.bindEvents();
@@ -47,7 +49,7 @@ export class PhotoViewer {
                         <a href="#" id="viewerPhotographerName" class="photographer-name"></a>
                     </div>
                     <div class="viewer-controls">
-                        <button class="control-btn" id="stripModeBtn" title="Toggle strip view">
+                        <button class="control-btn" id="stripModeBtn" title="Strip view - See all photos vertically">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="3" y="3" width="18" height="4"/>
                                 <rect x="3" y="10" width="18" height="4"/>
@@ -408,10 +410,35 @@ export class PhotoViewer {
     bindEvents() {
         // Viewer controls
         this.closeBtn?.addEventListener('click', () => this.close());
-        this.prevBtn?.addEventListener('click', () => this.navigate(-1));
-        this.nextBtn?.addEventListener('click', () => this.navigate(1));
-        this.infoBtn?.addEventListener('click', () => this.toggleInfo());
-        this.stripModeBtn?.addEventListener('click', () => this.toggleStripMode());
+        this.prevBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.navigate(-1);
+        });
+        this.nextBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.navigate(1);
+        });
+        this.infoBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleInfo();
+        });
+        this.stripModeBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleStripMode();
+        });
+
+        // Click anywhere on photo to close (but not on controls)
+        this.viewer?.addEventListener('click', (e) => {
+            // Don't close if clicking on controls, info panel, or navigation
+            if (e.target.closest('.viewer-controls') || 
+                e.target.closest('.nav-arrow') ||
+                e.target.closest('.photo-info-panel') ||
+                e.target.closest('.series-strip') ||
+                e.target.closest('.strip-container')) {
+                return;
+            }
+            this.close();
+        });
 
         // Keyboard navigation
         this.keyboardHandler = (e) => {
@@ -473,8 +500,9 @@ export class PhotoViewer {
         });
     }
 
-    open(photo, allPhotos = [], isSeries = false) {
-        // Store all photos for navigation
+    open(photo, allPhotos = [], isSeries = false, navigationContext = null) {
+        // Store navigation context and all photos for navigation
+        this.navigationContext = navigationContext;
         this.allPhotos = allPhotos;
         
         // Determine if this is a series
@@ -484,22 +512,27 @@ export class PhotoViewer {
             this.renderSeriesThumbs();
             document.getElementById('seriesIndicator')?.classList.remove('hidden');
         } else {
-            // Find photos from the same user for navigation
+            // Find the correct index of the clicked photo in allPhotos
+            this.currentPhoto = allPhotos.findIndex(p => p.id === photo.id);
+            if (this.currentPhoto === -1) {
+                // If photo not found in allPhotos, add it at the beginning
+                this.allPhotos = [photo, ...allPhotos];
+                this.currentPhoto = 0;
+            }
+            
+            // Also find photos from the same user for user-specific navigation
             const userId = photo.user_id || photo.photographer_id;
             if (userId && allPhotos.length > 0) {
                 this.currentUserPhotos = allPhotos.filter(p => 
                     (p.user_id || p.photographer_id) === userId
                 );
-                this.currentPhoto = this.currentUserPhotos.findIndex(p => p.id === photo.id);
-                if (this.currentPhoto === -1) {
+                if (this.currentUserPhotos.length === 0) {
                     this.currentUserPhotos = [photo];
-                    this.currentPhoto = 0;
                 }
             } else {
                 this.currentUserPhotos = [photo];
-                this.currentPhoto = 0;
             }
-            this.currentSeries = this.currentUserPhotos;
+            this.currentSeries = allPhotos; // Use all photos as default navigation set
             
             // Hide series UI for single photos
             document.getElementById('seriesStrip')?.classList.add('hidden');
@@ -522,19 +555,63 @@ export class PhotoViewer {
     navigate(direction) {
         if (this.isStripMode) return;
         
-        const photos = this.currentSeries.length > 1 ? this.currentSeries : this.currentUserPhotos;
+        // Choose navigation set based on context
+        let photos;
+        let contextTitle = '';
+        
+        if (this.currentSeries.length > 1) {
+            // Series navigation
+            photos = this.currentSeries;
+            contextTitle = 'in this series';
+        } else if (this.navigationContext?.type === 'user_photos' || this.currentUserPhotos.length > 1) {
+            // Same photographer navigation
+            photos = this.currentUserPhotos;
+            contextTitle = `by ${photos[0]?.photographer_name || photos[0]?.username || 'this photographer'}`;
+        } else {
+            // Default to all photos in current context
+            photos = this.allPhotos;
+            const contextMap = {
+                'home': 'in your feed',
+                'discover': 'in discover',
+                'photographers': 'photographer profiles',
+                'nearby': 'nearby photos',
+                'portfolio': 'in your portfolio'
+            };
+            contextTitle = contextMap[this.navigationContext?.type] || 'in this view';
+        }
+        
         const newIndex = this.currentPhoto + direction;
         
         if (newIndex >= 0 && newIndex < photos.length) {
             this.currentPhoto = newIndex;
             this.updateDisplay();
+            
+            // Update context info in UI if needed
+            this.updateNavigationHint(this.currentPhoto + 1, photos.length, contextTitle);
+        }
+    }
+
+    updateNavigationHint(current, total, contextTitle) {
+        // Update series indicator with context
+        const indicator = document.getElementById('seriesCount');
+        if (indicator) {
+            indicator.textContent = `${current} / ${total} ${contextTitle}`;
         }
     }
 
     updateDisplay() {
         if (this.isStripMode) return;
         
-        const photos = this.currentSeries.length > 1 ? this.currentSeries : this.currentUserPhotos;
+        // Use the same logic as navigate() to get the correct photo array
+        let photos;
+        if (this.currentSeries.length > 1) {
+            photos = this.currentSeries;
+        } else if (this.navigationContext?.type === 'user_photos' || this.currentUserPhotos.length > 1) {
+            photos = this.currentUserPhotos;
+        } else {
+            photos = this.allPhotos;
+        }
+        
         const photo = photos[this.currentPhoto];
         
         if (!photo) return;
@@ -573,20 +650,67 @@ export class PhotoViewer {
         const camera = document.getElementById('photoCamera');
         const settings = document.getElementById('photoSettings');
         
-        if (title) title.textContent = photo.title || 'Untitled';
-        if (description) description.textContent = photo.description || '';
-        
-        if (camera && photo.camera_make) {
-            camera.textContent = `${photo.camera_make} ${photo.camera_model || ''}`;
+        // Update title - handle empty titles better
+        if (title) {
+            title.textContent = photo.title || `Photo by ${photo.photographer_name || photo.username || 'Unknown'}`;
         }
         
-        if (settings && photo.focal_length) {
+        // Build description with photographer and model info
+        if (description) {
+            let descriptionText = '';
+            
+            // Add photo description if available
+            if (photo.description) {
+                descriptionText += photo.description;
+            }
+            
+            // Add photographer info
+            if (photo.photographer_name || photo.username) {
+                const photographerName = photo.photographer_name || photo.username;
+                if (descriptionText) descriptionText += '\n\n';
+                descriptionText += `📸 Photographer: ${photographerName}`;
+            }
+            
+            // Add model info (only if not empty)
+            if (photo.model_name && photo.model_name.trim()) {
+                descriptionText += `\n👤 Model: ${photo.model_name}`;
+            }
+            
+            // Add location if available
+            if (photo.location) {
+                descriptionText += `\n📍 Location: ${photo.location}`;
+            }
+            
+            description.textContent = descriptionText || 'No description available';
+        }
+        
+        // Update camera info
+        if (camera) {
+            let cameraText = '';
+            if (photo.camera || photo.camera_make) {
+                cameraText = photo.camera || `${photo.camera_make} ${photo.camera_model || ''}`.trim();
+            }
+            if (photo.lens) {
+                if (cameraText) cameraText += ' • ';
+                cameraText += photo.lens;
+            }
+            camera.textContent = cameraText || '';
+        }
+        
+        // Update technical settings
+        if (settings) {
             const settingsText = [];
-            if (photo.focal_length) settingsText.push(`${photo.focal_length}mm`);
-            if (photo.aperture) settingsText.push(`f/${photo.aperture}`);
-            if (photo.shutter_speed) settingsText.push(photo.shutter_speed);
-            if (photo.iso) settingsText.push(`ISO ${photo.iso}`);
-            settings.textContent = settingsText.join(' • ');
+            if (photo.settings) {
+                // Use pre-formatted settings string if available
+                settingsText.push(photo.settings);
+            } else {
+                // Build from individual fields
+                if (photo.focal_length) settingsText.push(`${photo.focal_length}mm`);
+                if (photo.aperture) settingsText.push(`f/${photo.aperture}`);
+                if (photo.shutter_speed) settingsText.push(photo.shutter_speed);
+                if (photo.iso) settingsText.push(`ISO ${photo.iso}`);
+            }
+            settings.textContent = settingsText.join(' • ') || '';
         }
     }
 
@@ -631,26 +755,48 @@ export class PhotoViewer {
     }
 
     toggleStripMode() {
-        if (this.currentSeries.length <= 1) return;
+        // Get the current photo collection for strip mode
+        let photos;
+        if (this.currentSeries.length > 1) {
+            photos = this.currentSeries;
+        } else if (this.currentUserPhotos.length > 1) {
+            photos = this.currentUserPhotos;
+        } else if (this.allPhotos.length > 1) {
+            photos = this.allPhotos;
+        } else {
+            // Not enough photos for strip mode
+            return;
+        }
         
         this.isStripMode = !this.isStripMode;
         
         if (this.isStripMode) {
             this.viewer?.classList.add('strip-mode');
-            this.renderStrip();
+            this.renderStrip(photos);
         } else {
             this.viewer?.classList.remove('strip-mode');
             this.updateDisplay();
         }
+        
+        // Update button tooltip
+        const stripBtn = document.getElementById('stripModeBtn');
+        if (stripBtn) {
+            stripBtn.title = this.isStripMode ? 
+                'Return to single photo view' : 
+                'Strip view - See all photos vertically';
+        }
     }
 
-    renderStrip() {
+    renderStrip(photos = null) {
         if (!this.stripContainer) return;
+        
+        // Use provided photos or default to current series
+        const photosToRender = photos || this.currentSeries;
         
         this.stripContainer.innerHTML = '';
         this.stripContainer.style.setProperty('--strip-margin', `${this.stripMargin}px`);
         
-        this.currentSeries.forEach((photo, index) => {
+        photosToRender.forEach((photo, index) => {
             const stripPhoto = document.createElement('div');
             stripPhoto.className = 'strip-photo';
             

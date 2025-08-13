@@ -21,16 +21,16 @@
     <link rel="stylesheet" href="css/app.css">
     
     <!-- Icons -->
-    <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/icon-32.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png">
-    <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="assets/icons/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/web-app-manifest-192x192.png">
+    <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
     
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     
     <!-- ExifReader for EXIF metadata extraction -->
-    <script src="https://cdn.jsdelivr.net/npm/exifreader@4.23.5/dist/lite/exif-reader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exifreader@4.23.5/dist/exif-reader.js"></script>
 </head>
 <body>
     <!-- App Shell -->
@@ -56,9 +56,37 @@
                             <path d="M12 5v14M5 12h14"/>
                         </svg>
                     </button>
-                    <button class="btn-profile" id="profileBtn">
-                        <img src="" alt="Profile" class="profile-avatar" id="userAvatar">
-                    </button>
+                    <div class="profile-dropdown">
+                        <button class="btn-profile" id="profileBtn">
+                            <img src="" alt="Profile" class="profile-avatar" id="userAvatar">
+                        </button>
+                        <div class="dropdown-menu hidden" id="profileDropdown">
+                            <button class="dropdown-item" id="editProfileBtn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                    <path d="m18.5 2.5 a2.121 2.121 0 0 1 3 3l-2.5 2.5-3-3 2.5-2.5z"/>
+                                    <path d="m15 5 3 3"/>
+                                </svg>
+                                Edit Profile
+                            </button>
+                            <button class="dropdown-item" id="viewProfileBtn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                                View Profile
+                            </button>
+                            <div class="dropdown-divider"></div>
+                            <button class="dropdown-item logout" id="logoutBtn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                    <polyline points="16,17 21,12 16,7"/>
+                                    <line x1="21" y1="12" x2="9" y2="12"/>
+                                </svg>
+                                Logout
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </header>
@@ -179,6 +207,237 @@
                 </div>
             </div>
         </div>
+        <!-- Profile View Modal -->
+        <div class="profile-view-modal hidden" id="profileViewModal">
+            <div class="modal-content">
+                <button class="modal-close" id="profileViewClose">&times;</button>
+                <div class="profile-header">
+                    <div class="profile-image-display">
+                        <img src="" alt="Profile" id="viewProfileImage" class="profile-image-large">
+                    </div>
+                    <div class="profile-basic-info">
+                        <h2 id="viewDisplayName">Loading...</h2>
+                        <p class="profile-username" id="viewUsername">@loading</p>
+                        <p class="profile-type" id="viewUserType">Loading...</p>
+                        <p class="profile-tagline" id="viewTagline"></p>
+                    </div>
+                </div>
+                
+                <div class="profile-content">
+                    <!-- Bio Section -->
+                    <div class="profile-section" id="bioSection">
+                        <h3>About</h3>
+                        <p id="viewBio">Loading bio...</p>
+                    </div>
+                    
+                    <!-- Artistic Statement -->
+                    <div class="profile-section" id="artisticSection">
+                        <h3>Artistic Vision</h3>
+                        <p id="viewArtisticStatement">Loading artistic statement...</p>
+                    </div>
+                    
+                    <!-- Mission Statement -->
+                    <div class="profile-section" id="missionSection">
+                        <h3>Mission</h3>
+                        <p id="viewMissionStatement">Loading mission statement...</p>
+                    </div>
+                    
+                    <!-- Professional Details -->
+                    <div class="profile-section" id="professionalSection">
+                        <h3>Professional Details</h3>
+                        <div class="profile-details-grid">
+                            <div class="detail-item">
+                                <span class="detail-label">Experience:</span>
+                                <span class="detail-value" id="viewExperience">Loading...</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Location:</span>
+                                <span class="detail-value" id="viewCity">Loading...</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Work Preference:</span>
+                                <span class="detail-value" id="viewLocationPreference">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Photography Styles (for photographers) -->
+                    <div class="profile-section hidden" id="photographyStylesViewSection">
+                        <h3>Photography Styles</h3>
+                        <div class="styles-tags" id="viewPhotographyStyles">
+                            <!-- Will be populated with style tags -->
+                        </div>
+                    </div>
+                    
+                    <!-- Model Details (for models) -->
+                    <div class="profile-section hidden" id="modelDetailsViewSection">
+                        <h3>Model Details</h3>
+                        <div class="profile-details-grid" id="viewModelDetails">
+                            <!-- Will be populated with model details -->
+                        </div>
+                    </div>
+                    
+                    <!-- Availability -->
+                    <div class="profile-section" id="availabilitySection">
+                        <h3>Availability</h3>
+                        <div class="availability-info" id="viewAvailability">
+                            <!-- Will show availability status and rate range -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action buttons for own profile -->
+                <div class="profile-actions" id="ownProfileActions">
+                    <button class="btn-secondary" id="editFromView">Edit Profile</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Edit Modal -->
+        <div class="profile-modal hidden" id="profileModal">
+            <div class="modal-content">
+                <button class="modal-close" id="profileClose">&times;</button>
+                <h2>Edit Profile</h2>
+                
+                <div class="profile-form">
+                    <!-- Profile Image Section -->
+                    <div class="form-section">
+                        <div class="profile-image-section">
+                            <div class="profile-image-container">
+                                <img src="" alt="Profile" id="profileImagePreview" class="profile-image-large">
+                                <button class="btn-change-image" id="changeImageBtn">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                                        <circle cx="12" cy="13" r="4"/>
+                                    </svg>
+                                    Change Photo
+                                </button>
+                                <input type="file" id="profileImageInput" accept="image/*" hidden>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Basic Information -->
+                    <div class="form-section">
+                        <h3>Basic Information</h3>
+                        <div class="form-row">
+                            <input type="text" placeholder="Display Name" class="input-field" id="profileDisplayName" required>
+                            <input type="text" placeholder="Username" class="input-field" id="profileUsername" required>
+                        </div>
+                        <textarea placeholder="Bio" class="input-field" id="profileBio" rows="3"></textarea>
+                        <input type="text" placeholder="City" class="input-field" id="profileCity">
+                    </div>
+
+                    <!-- User Type & Experience -->
+                    <div class="form-section">
+                        <h3>Professional Details</h3>
+                        <div class="form-row">
+                            <select class="input-field" id="profileUserType" required>
+                                <option value="">Select Type</option>
+                                <option value="photographer">Photographer</option>
+                                <option value="model">Model</option>
+                                <option value="studio">Studio</option>
+                                <option value="makeup_artist">Makeup Artist</option>
+                                <option value="stylist">Stylist</option>
+                            </select>
+                            <select class="input-field" id="profileExperience">
+                                <option value="">Experience Level</option>
+                                <option value="beginner">Beginner</option>
+                                <option value="intermediate">Intermediate</option>
+                                <option value="advanced">Advanced</option>
+                                <option value="professional">Professional</option>
+                            </select>
+                        </div>
+                        <input type="text" placeholder="Tagline" class="input-field" id="profileTagline">
+                    </div>
+
+                    <!-- Photography Styles (for photographers) -->
+                    <div class="form-section" id="photographyStylesSection">
+                        <h3>Photography Styles</h3>
+                        <div class="checkbox-grid" id="photographyStyles">
+                            <!-- Will be populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Model Details (for models) -->
+                    <div class="form-section hidden" id="modelDetailsSection">
+                        <h3>Model Details</h3>
+                        <div class="form-row">
+                            <select class="input-field" id="profileGender">
+                                <option value="">Gender</option>
+                                <option value="female">Female</option>
+                                <option value="male">Male</option>
+                                <option value="non_binary">Non-binary</option>
+                                <option value="prefer_not_to_say">Prefer not to say</option>
+                            </select>
+                            <input type="number" placeholder="Age" class="input-field" id="profileAge" min="16" max="100">
+                        </div>
+                        <div class="form-row">
+                            <input type="text" placeholder="Height (e.g., 5'6&quot;)" class="input-field" id="profileHeight">
+                            <select class="input-field" id="profileWeight">
+                                <option value="">Build</option>
+                                <option value="petite">Petite</option>
+                                <option value="slim">Slim</option>
+                                <option value="athletic">Athletic</option>
+                                <option value="curvy">Curvy</option>
+                                <option value="plus_size">Plus Size</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Artistic Statement -->
+                    <div class="form-section">
+                        <h3>Artistic Statement</h3>
+                        <textarea placeholder="Tell us about your artistic vision and approach..." 
+                                class="input-field" id="profileArtisticStatement" rows="4"></textarea>
+                    </div>
+
+                    <!-- Mission Statement -->
+                    <div class="form-section">
+                        <h3>Mission Statement</h3>
+                        <textarea placeholder="What drives your work? What message do you want to convey?" 
+                                class="input-field" id="profileMissionStatement" rows="3"></textarea>
+                    </div>
+
+                    <!-- Availability -->
+                    <div class="form-section">
+                        <h3>Availability</h3>
+                        <div class="form-row">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="profileAvailableForHire">
+                                <span class="checkmark"></span>
+                                Available for hire
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="profileAvailableForCollabs">
+                                <span class="checkmark"></span>
+                                Available for collaborations
+                            </label>
+                        </div>
+                        <input type="text" placeholder="Rate range (optional)" class="input-field" id="profileRateRange">
+                    </div>
+
+                    <!-- Location Preference -->
+                    <div class="form-section">
+                        <h3>Work Preferences</h3>
+                        <select class="input-field" id="profileLocationPreference">
+                            <option value="">Location Preference</option>
+                            <option value="local_only">Local only</option>
+                            <option value="regional">Regional (within state/province)</option>
+                            <option value="national">National</option>
+                            <option value="international">International</option>
+                        </select>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="form-actions">
+                        <button class="btn-secondary" id="cancelProfileEdit">Cancel</button>
+                        <button class="btn-primary" id="saveProfile">Save Profile</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Auth Modal (if not logged in) -->
         <div class="auth-modal hidden" id="authModal">
             <div class="modal-content auth-content">
