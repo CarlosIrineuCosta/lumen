@@ -1,0 +1,82 @@
+graph TB
+    subgraph "Frontend Layer"
+        FE[Frontend-new React/TypeScript]
+        FE --> AUTH[AuthContext]
+        FE --> SHELL[AppShell]
+        FE --> PAGES[Pages]
+        FE --> COMP[Components]
+        
+        PAGES --> HOME[HomePage]
+        PAGES --> UPLOAD[UploadPage] 
+        PAGES --> PROFILE[ProfilePage]
+        
+        COMP --> GRID[PhotoGrid]
+        COMP --> CARD[PhotoCard]
+        
+        FE --> STORES[Stores/State]
+        FE --> SERVICES[Services]
+        FE --> HOOKS[Hooks]
+    end
+    
+    subgraph "Backend Layer"
+        BE[Backend FastAPI]
+        BE --> MAIN[main.py]
+        BE --> AUTH_MW[auth_middleware.py]
+        BE --> FB_CONFIG[firebase_config.py]
+        
+        BE --> API[API Routes]
+        BE --> MODELS[Models]
+        BE --> SERVICES_BE[Services]
+        BE --> DB[Database]
+        BE --> STORAGE_BE[Storage]
+        BE --> UTILS[Utils]
+        BE --> MONITOR[Monitoring]
+    end
+    
+    subgraph "Database"
+        PG[PostgreSQL]
+        PG --> SERIES[Series Table]
+        PG --> PHOTOS[Photos Table] 
+        PG --> USERS[Users Table]
+        PG --> META[Metadata Tables]
+    end
+    
+    subgraph "Storage"
+        LOCAL[Local Storage]
+        FB_STORAGE[Firebase Storage]
+    end
+    
+    subgraph "Authentication"
+        FB_AUTH[Firebase Auth]
+    end
+    
+    subgraph "Infrastructure"
+        SCRIPTS[Scripts]
+        SCRIPTS --> START[start-server.sh]
+        SCRIPTS --> MIGRATE[Migration Scripts]
+        CONFIG[Config]
+        DOCS[Documentation]
+    end
+    
+    %% Connections
+    FE -->|HTTP/API| BE
+    AUTH -->|JWT| FB_AUTH
+    BE -->|SQL| PG
+    BE -->|File Operations| LOCAL
+    SERVICES -->|Upload/Download| FB_STORAGE
+    SERVICES_BE -->|Image Processing| LOCAL
+    
+    %% Styling
+    classDef frontend fill:#e1f5fe
+    classDef backend fill:#f3e5f5  
+    classDef database fill:#e8f5e8
+    classDef storage fill:#fff3e0
+    classDef auth fill:#ffebee
+    classDef infra fill:#f5f5f5
+    
+    class FE,AUTH,SHELL,PAGES,COMP,STORES,SERVICES,HOOKS,HOME,UPLOAD,PROFILE,GRID,CARD frontend
+    class BE,MAIN,AUTH_MW,FB_CONFIG,API,MODELS,SERVICES_BE,DB,STORAGE_BE,UTILS,MONITOR backend
+    class PG,SERIES,PHOTOS,USERS,META database
+    class LOCAL,FB_STORAGE storage
+    class FB_AUTH auth
+    class SCRIPTS,START,MIGRATE,CONFIG,DOCS infra

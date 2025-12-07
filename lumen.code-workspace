@@ -1,0 +1,43 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		// Docker configuration
+		"DockerRun.DisableAutoGenerateConfig": true,
+		
+		// Force minimal extension behavior
+		"extensions.autoUpdate": false,
+		"extensions.autoCheckUpdates": false,
+		
+		// Ensure layout stays clean
+		"workbench.sideBar.location": "right",
+		"workbench.panel.defaultLocation": "bottom",
+		
+		// Terminal configuration
+		"terminal.integrated.defaultProfile.linux": "bash",
+		
+		// Prevent file preview chaos from CLI tools
+		"workbench.editor.enablePreview": false,
+		"workbench.editor.revealIfOpen": false
+	},
+	"extensions": {
+		"recommendations": [
+			"kilocode.kilo-code",
+			"sst-dev.opencode",
+			"ms-python.python",
+			"ms-python.black-formatter",
+			"esbenp.prettier-vscode"
+		],
+		"unwantedRecommendations": [
+			"github.copilot",
+			"github.copilot-chat",
+			"continue.continue",
+			"rooveterinaryinc.roo-cline",
+			"saoudrizwan.claude-dev",
+			"anthropics.claude-code"
+		]
+	}
+}

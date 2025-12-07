@@ -1,0 +1,18 @@
+{
+  "task_id": "20251001_011122",
+  "created_at": "2025-10-01T01:11:22.877563",
+  "tasks": [
+    {
+      "id": 1,
+      "type": "review",
+      "description": "security, error handling, validation",
+      "files": [
+        "backend/app/api/endpoints/monitoring.py"
+      ]
+    }
+  ],
+  "locked_files": [
+    "backend/app/api/endpoints/monitoring.py"
+  ],
+  "status": "running"
+}

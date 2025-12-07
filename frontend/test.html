@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lumen Test</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(0,0,0,0.5);
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        button {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background: rgba(255,255,255,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✅ Lumen Frontend is Working!</h1>
+        <p>If you can see this, the HTML files are loading correctly.</p>
+        <button onclick="window.location.href='index.html'">
+            Go to Main Application →
+        </button>
+        <br><br>
+        <p>Current Path: <code id="path"></code></p>
+    </div>
+    <script>
+        document.getElementById('path').textContent = window.location.href;
+    </script>
+</body>
+</html>

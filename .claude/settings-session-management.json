@@ -1,0 +1,48 @@
+{
+  "description": "Claude Code Session Management Configuration",
+  "project": "wasenet-lumen",
+  
+  "slash_commands": {
+    "/start": {
+      "description": "Start session by reading orchestration file and presenting action plan",
+      "action": "embedded_start_command"
+    },
+    "/end": {
+      "description": "End session with comprehensive review and next-day preparation", 
+      "action": "embedded_end_command"
+    }
+  },
+
+  "hooks": {
+    "user-prompt-submit": {
+      "description": "Detect session management commands",
+      "command": "bash -c 'if [[ \"$USER_PROMPT\" == \"/start\"* ]]; then echo \"SESSION_START_DETECTED\"; elif [[ \"$USER_PROMPT\" == \"/end\"* ]]; then echo \"SESSION_END_DETECTED\"; fi'"
+    },
+    
+    "tool-call-bash": {
+      "description": "Monitor git operations during session",
+      "command": "bash -c 'if [[ \"$TOOL_ARGS\" == *\"git\"* ]]; then echo \"GIT_OPERATION: $TOOL_ARGS\"; fi'",
+      "filter": "git"
+    }
+  },
+
+  "session_management": {
+    "orchestration_file_pattern": "start-here-*.md",
+    "review_files": [
+      "CURRENT_STATUS.md",
+      "CLAUDE.md", 
+      "opusdev/README.md",
+      "opusdev/ARCHITECTURE.md"
+    ],
+    "draft_directory": "opusdev/docs/drafts",
+    "archive_directory": "docs/archive/development-drafts",
+    "cleanup_threshold_days": 30
+  },
+
+  "automation_rules": {
+    "auto_archive_orchestration_files": true,
+    "auto_create_next_day_file": true,
+    "git_status_check_on_end": true,
+    "draft_cleanup_warnings": true
+  }
+}

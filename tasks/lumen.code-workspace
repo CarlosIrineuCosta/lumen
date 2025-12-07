@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"name": "lumen",
+			"path": ".."
+		}
+	],
+	"settings": {
+		"DockerRun.DisableAutoGenerateConfig": true
+	}
+}

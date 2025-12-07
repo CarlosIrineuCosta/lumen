@@ -1,0 +1,128 @@
+erDiagram
+    User {
+        string id PK
+        string firebase_uid UK
+        string email
+        string display_name
+        enum user_type
+        enum photography_style
+        enum experience_level
+        enum location_preference
+        json profile_data
+        json contact_preferences
+        json availability_data
+        timestamp created_at
+        timestamp updated_at
+        boolean is_active
+    }
+    
+    Photo {
+        string id PK
+        string user_id FK
+        string series_id FK
+        string title
+        text description
+        string file_path
+        string thumbnail_path
+        json metadata
+        json urls
+        enum visibility
+        enum status
+        json engagement_data
+        timestamp taken_at
+        timestamp uploaded_at
+        timestamp updated_at
+        boolean is_deleted
+    }
+    
+    Series {
+        string id PK
+        string user_id FK
+        string title
+        text description
+        enum visibility
+        json metadata
+        integer photo_count
+        string cover_photo_id FK
+        timestamp created_at
+        timestamp updated_at
+        boolean is_active
+    }
+    
+    PhotoCollaborator {
+        string id PK
+        string photo_id FK
+        string user_id FK
+        enum role
+        enum status
+        json permissions
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    UserLocation {
+        string id PK
+        string user_id FK
+        string city
+        string region
+        string country
+        float latitude
+        float longitude
+        boolean is_primary
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    PhotoTag {
+        string id PK
+        string photo_id FK
+        string tag_name
+        enum tag_type
+        float confidence
+        timestamp created_at
+    }
+    
+    UserFollow {
+        string id PK
+        string follower_id FK
+        string following_id FK
+        timestamp created_at
+    }
+    
+    PhotoLike {
+        string id PK
+        string photo_id FK
+        string user_id FK
+        timestamp created_at
+    }
+    
+    PhotoComment {
+        string id PK
+        string photo_id FK
+        string user_id FK
+        text content
+        string parent_comment_id FK
+        timestamp created_at
+        timestamp updated_at
+        boolean is_deleted
+    }
+
+    %% Relationships
+    User ||--o{ Photo : "uploads"
+    User ||--o{ Series : "creates"
+    User ||--o{ UserLocation : "has"
+    User ||--o{ PhotoCollaborator : "collaborates"
+    User ||--o{ UserFollow : "follows"
+    User ||--o{ UserFollow : "followed_by"
+    User ||--o{ PhotoLike : "likes"
+    User ||--o{ PhotoComment : "comments"
+    
+    Series ||--o{ Photo : "contains"
+    Series }o--|| Photo : "cover_photo"
+    
+    Photo ||--o{ PhotoCollaborator : "has_collaborators"
+    Photo ||--o{ PhotoTag : "has_tags"
+    Photo ||--o{ PhotoLike : "receives_likes"
+    Photo ||--o{ PhotoComment : "receives_comments"
+    
+    PhotoComment }o--|| PhotoComment : "replies_to"

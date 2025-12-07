@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="app.name">Lumen - Glass Components Showcase</title>
+
+    <!-- Glass Theme System -->
+    <script src="config/glass-theme.js"></script>
+    <script src="js/glass-config-loader.js"></script>
+
+    <!-- Internationalization -->
+    <script src="i18n/languages.js"></script>
+    <script src="i18n/en.js"></script>
+    <script src="i18n/es.js"></script>
+    <script src="i18n/fr.js"></script>
+    <script src="js/i18n-helper.js"></script>
+
+    <!-- Glass Components CSS -->
+    <link rel="stylesheet" href="css/glassmorphism-core.css">
+
+    <!-- Background for showcase -->
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 50%, #7c3aed 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            color: var(--glass-text-primary);
+        }
+
+        .showcase-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .showcase-section {
+            margin-bottom: 3rem;
+        }
+
+        .showcase-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--glass-text-primary);
+        }
+
+        .showcase-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .component-demo {
+            padding: 1.5rem;
+            background: var(--glass-primary-light);
+            backdrop-filter: blur(var(--glass-blur-medium));
+            border: 1px solid var(--glass-border-light);
+            border-radius: var(--glass-radius-large);
+        }
+
+        .demo-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--glass-text-primary);
+        }
+
+        .photo-grid-demo {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .photo-placeholder {
+            aspect-ratio: 1;
+            background: var(--glass-primary-medium);
+            border-radius: var(--glass-radius-medium);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--glass-text-muted);
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="glass-navbar glass-fixed glass-top-0 glass-z-50">
+        <div class="glass-navbar-start">
+            <h1 class="glass-text-xl glass-font-bold" data-i18n="app.name">Lumen</h1>
+        </div>
+        <div class="glass-navbar-center glass-hidden lg:glass-flex">
+            <div class="glass-menu glass-menu-horizontal">
+                <li><a href="#" class="active" data-i18n="nav.explore">Explore</a></li>
+                <li><a href="#" data-i18n="nav.members">Members</a></li>
+                <li><a href="#" data-i18n="nav.series">Series</a></li>
+            </div>
+        </div>
+        <div class="glass-navbar-end">
+            <!-- Language Selector -->
+            <div class="glass-dropdown glass-dropdown-end">
+                <button class="glass-btn glass-btn-ghost glass-btn-circle">🌐</button>
+                <div class="glass-dropdown-content">
+                    <div class="glass-menu">
+                        <li><a href="#" onclick="changeLanguage('en')">English</a></li>
+                        <li><a href="#" onclick="changeLanguage('es')">Español</a></li>
+                        <li><a href="#" onclick="changeLanguage('fr')">Français</a></li>
+                    </div>
+                </div>
+            </div>
+            <!-- Theme Selector -->
+            <div class="glass-dropdown glass-dropdown-end">
+                <button class="glass-btn glass-btn-ghost glass-btn-circle">🎨</button>
+                <div class="glass-dropdown-content">
+                    <div class="glass-menu">
+                        <li><a href="#" onclick="changeTheme('dark')" data-i18n="theme.darkGlass">Dark Glass</a></li>
+                        <li><a href="#" onclick="changeTheme('light')" data-i18n="theme.lightGlass">Light Glass</a></li>
+                        <li><a href="#" onclick="changeTheme('midnight')" data-i18n="theme.midnightBlue">Midnight Blue</a></li>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="showcase-container" style="margin-top: 5rem;">
+        <!-- Hero Section -->
+        <div class="glass-hero">
+            <div class="glass-hero-content">
+                <h1 class="glass-text-3xl glass-font-bold glass-text-center" data-i18n="app.tagline">
+                    Where Photography Meets Artistry
+                </h1>
+                <p class="glass-text-lg glass-text-center glass-text-secondary glass-m-4" data-i18n="app.description">
+                    A premium photography platform for discovering and sharing visual stories
+                </p>
+                <div class="glass-flex glass-justify-center glass-gap-4">
+                    <button class="glass-btn glass-btn-primary glass-btn-lg" data-i18n="nav.explore">Explore</button>
+                    <button class="glass-btn glass-btn-secondary glass-btn-lg" data-i18n="nav.upload">Upload</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Components Showcase -->
+        <div class="showcase-section">
+            <h2 class="showcase-title">Glass Components Library</h2>
+
+            <!-- Buttons Section -->
+            <div class="component-demo">
+                <h3 class="demo-title" data-i18n="actions.buttons">Buttons</h3>
+                <div class="glass-flex glass-flex-wrap glass-gap-3">
+                    <button class="glass-btn glass-btn-primary" data-i18n="actions.save">Save</button>
+                    <button class="glass-btn glass-btn-secondary" data-i18n="actions.cancel">Cancel</button>
+                    <button class="glass-btn glass-btn-ghost" data-i18n="actions.edit">Edit</button>
+                    <button class="glass-btn glass-btn-primary glass-btn-sm" data-i18n="actions.delete">Delete</button>
+                    <button class="glass-btn glass-btn-circle">❤</button>
+                    <button class="glass-btn glass-btn-primary glass-btn-lg" data-i18n="actions.upload">Upload</button>
+                </div>
+            </div>
+
+            <!-- Cards Section -->
+            <div class="showcase-grid">
+                <div class="glass-card">
+                    <div class="glass-card-body">
+                        <h3 class="glass-card-title" data-i18n="photos.featuredPhotos">Featured Photo</h3>
+                        <p class="glass-text-secondary" data-i18n="photos.photoDetails">Beautiful landscape photography from the mountains</p>
+                        <div class="glass-card-actions">
+                            <button class="glass-btn glass-btn-primary glass-btn-sm" data-i18n="actions.view">View</button>
+                            <button class="glass-btn glass-btn-ghost glass-btn-sm" data-i18n="actions.like">Like</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card">
+                    <div class="glass-card-body">
+                        <h3 class="glass-card-title" data-i18n="series.title">Photography Series</h3>
+                        <p class="glass-text-secondary">Collection of street photography from urban environments</p>
+                        <div class="glass-card-actions">
+                            <button class="glass-btn glass-btn-secondary glass-btn-sm" data-i18n="actions.view">View Series</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Forms Section -->
+            <div class="component-demo">
+                <h3 class="demo-title" data-i18n="upload.title">Form Components</h3>
+                <div class="glass-flex glass-flex-col glass-gap-4 glass-max-w-md">
+                    <div class="glass-form-control">
+                        <label class="glass-label">
+                            <span class="glass-label-text" data-i18n="upload.photoTitle">Photo Title</span>
+                        </label>
+                        <input type="text" class="glass-input" data-i18n-attr="placeholder" data-i18n="upload.photoTitle">
+                    </div>
+
+                    <div class="glass-form-control">
+                        <label class="glass-label">
+                            <span class="glass-label-text" data-i18n="upload.category">Category</span>
+                        </label>
+                        <select class="glass-select">
+                            <option data-i18n="categories.nature">Nature</option>
+                            <option data-i18n="categories.portrait">Portrait</option>
+                            <option data-i18n="categories.landscape">Landscape</option>
+                        </select>
+                    </div>
+
+                    <div class="glass-form-control">
+                        <label class="glass-label glass-cursor-pointer">
+                            <input type="checkbox" class="glass-checkbox">
+                            <span class="glass-label-text" data-i18n="upload.public">Make Public</span>
+                        </label>
+                    </div>
+
+                    <div class="glass-form-control">
+                        <label class="glass-label">
+                            <span class="glass-label-text" data-i18n="settings.notifications">Enable Notifications</span>
+                            <input type="checkbox" class="glass-toggle">
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feedback Components -->
+            <div class="component-demo">
+                <h3 class="demo-title">Feedback Components</h3>
+                <div class="glass-flex glass-flex-col glass-gap-4">
+                    <div class="glass-alert glass-alert-info">
+                        <span data-i18n="success.uploaded">Photo uploaded successfully!</span>
+                    </div>
+
+                    <div class="glass-alert glass-alert-warning">
+                        <span data-i18n="errors.fileSize">File size exceeds maximum limit</span>
+                    </div>
+
+                    <div class="glass-flex glass-gap-2">
+                        <span class="glass-badge glass-badge-primary" data-i18n="categories.featured">Featured</span>
+                        <span class="glass-badge glass-badge-secondary" data-i18n="categories.new">New</span>
+                        <span class="glass-badge glass-badge-ghost">12 likes</span>
+                    </div>
+
+                    <div class="glass-progress">
+                        <div class="glass-progress-bar" style="width: 65%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Photo Grid Integration Demo -->
+            <div class="component-demo">
+                <h3 class="demo-title" data-i18n="photos.title">Photo Grid Integration</h3>
+                <p class="glass-text-secondary glass-mb-4">
+                    Glass components work seamlessly with existing photo libraries (Masonry.js + LightGallery.js)
+                </p>
+                <div class="photo-grid-demo">
+                    <div class="photo-placeholder glass-interactive">
+                        <span>Photo 1</span>
+                    </div>
+                    <div class="photo-placeholder glass-interactive">
+                        <span>Photo 2</span>
+                    </div>
+                    <div class="photo-placeholder glass-interactive">
+                        <span>Photo 3</span>
+                    </div>
+                    <div class="photo-placeholder glass-interactive">
+                        <span>Photo 4</span>
+                    </div>
+                </div>
+                <div class="glass-flex glass-justify-center glass-mt-4">
+                    <button class="glass-btn glass-btn-ghost" data-i18n="actions.load">Load More Photos</button>
+                </div>
+            </div>
+
+            <!-- Statistics Demo -->
+            <div class="showcase-grid">
+                <div class="glass-stat">
+                    <div class="glass-stat-title" data-i18n="profile.photosCount">Total Photos</div>
+                    <div class="glass-stat-value">1,247</div>
+                    <div class="glass-stat-desc" data-i18n="time.thisMonth">This month</div>
+                </div>
+
+                <div class="glass-stat">
+                    <div class="glass-stat-title" data-i18n="profile.followers">Followers</div>
+                    <div class="glass-stat-value">892</div>
+                    <div class="glass-stat-desc">+12% growth</div>
+                </div>
+
+                <div class="glass-stat">
+                    <div class="glass-stat-title" data-i18n="profile.likesReceived">Total Likes</div>
+                    <div class="glass-stat-value">15.7K</div>
+                    <div class="glass-stat-desc" data-i18n="time.allTime">All time</div>
+                </div>
+            </div>
+
+            <!-- Navigation Components -->
+            <div class="component-demo">
+                <h3 class="demo-title">Navigation Components</h3>
+
+                <!-- Tabs -->
+                <div class="glass-tabs glass-mb-4">
+                    <a class="glass-tab tab-active" data-i18n="photos.allPhotos">All Photos</a>
+                    <a class="glass-tab" data-i18n="photos.myPhotos">My Photos</a>
+                    <a class="glass-tab" data-i18n="photos.featuredPhotos">Featured</a>
+                </div>
+
+                <!-- Breadcrumbs -->
+                <div class="glass-breadcrumbs glass-mb-4">
+                    <li><a href="#" data-i18n="nav.explore">Explore</a></li>
+                    <li><a href="#" data-i18n="categories.nature">Nature</a></li>
+                    <li><span data-i18n="categories.landscape">Landscape</span></li>
+                </div>
+
+                <!-- Steps -->
+                <div class="glass-steps">
+                    <div class="glass-step step-primary">
+                        <div class="glass-step-circle">1</div>
+                        <span class="glass-text-sm" data-i18n="upload.selectFiles">Select</span>
+                    </div>
+                    <div class="glass-step">
+                        <div class="glass-step-circle">2</div>
+                        <span class="glass-text-sm" data-i18n="upload.photoDetails">Details</span>
+                    </div>
+                    <div class="glass-step">
+                        <div class="glass-step-circle">3</div>
+                        <span class="glass-text-sm" data-i18n="upload.uploadComplete">Upload</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="glass-footer glass-text-center">
+            <p class="glass-text-secondary">
+                <span data-i18n="app.name">Lumen</span>
+                <span data-i18n="app.version">v2.0</span> -
+                <span data-i18n="app.tagline">Where Photography Meets Artistry</span>
+            </p>
+        </footer>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="glass-toast" id="toast-container">
+        <!-- Toasts will be dynamically added here -->
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Theme switching
+        function changeTheme(theme) {
+            if (window.glassConfig) {
+                window.glassConfig.applyTheme(theme);
+                showToast(`Theme changed to ${theme}`, 'info');
+            }
+        }
+
+        // Language switching
+        function changeLanguage(lang) {
+            if (window.i18n) {
+                window.i18n.changeLanguage(lang);
+                showToast(`Language changed to ${lang}`, 'info');
+            }
+        }
+
+        // Toast notifications
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `glass-toast-item glass-alert glass-alert-${type}`;
+            toast.textContent = message;
+
+            container.appendChild(toast);
+
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                toast.style.animation = 'glass-slide-out-right 0.3s ease forwards';
+                setTimeout(() => {
+                    if (container.contains(toast)) {
+                        container.removeChild(toast);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Add slide-out animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes glass-slide-out-right {
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Demo interactions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click handlers for demo buttons
+            document.querySelectorAll('.glass-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    if (!this.closest('.glass-dropdown-content') && !this.onclick) {
+                        e.preventDefault();
+                        const action = this.textContent.trim();
+                        showToast(`${action} clicked!`, 'info');
+                    }
+                });
+            });
+
+            // Demo photo grid interactions
+            document.querySelectorAll('.photo-placeholder').forEach(photo => {
+                photo.addEventListener('click', function() {
+                    showToast('Photo viewer would open here', 'info');
+                });
+            });
+
+            // Tab switching
+            document.querySelectorAll('.glass-tab').forEach(tab => {
+                tab.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    document.querySelectorAll('.glass-tab').forEach(t => t.classList.remove('tab-active'));
+                    this.classList.add('tab-active');
+                    showToast(`Switched to ${this.textContent} tab`, 'info');
+                });
+            });
+
+            // Show welcome toast
+            setTimeout(() => {
+                showToast('Welcome to the Glass Components Showcase!', 'info');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

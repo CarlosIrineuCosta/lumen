@@ -1,0 +1,12 @@
+# API Key Setup and CLI Wrapper Dependencies
+python-dotenv>=1.0.0
+requests>=2.31.0
+
+# Z.Ai GLM Support (optional - install if using Z.Ai dev plan)
+# zai>=1.0.0
+
+# OpenAI Support (for Codex/GPT-4)
+openai>=1.50.0
+
+# Claude CLI (install separately)
+# Install from: https://docs.anthropic.com/claude/docs/claude-cli

@@ -1,0 +1,22 @@
+{
+  "task_id": "20251001_011224",
+  "created_at": "2025-10-01T01:12:24.914234",
+  "tasks": [
+    {
+      "id": 1,
+      "type": "review",
+      "description": "business logic, error handling, performance",
+      "files": [
+        "backend/app/services/photo_service_v2.py",
+        "backend/app/services/location_service.py",
+        "backend/app/services/id_management_service.py"
+      ]
+    }
+  ],
+  "locked_files": [
+    "backend/app/services/location_service.py",
+    "backend/app/services/id_management_service.py",
+    "backend/app/services/photo_service_v2.py"
+  ],
+  "status": "running"
+}

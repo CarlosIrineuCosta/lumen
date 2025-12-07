@@ -1,0 +1,62 @@
+stateDiagram-v2
+    [*] --> Loading
+    
+    Loading --> Unauthenticated: Auth check failed
+    Loading --> Authenticated: User logged in
+    
+    state Unauthenticated {
+        [*] --> LoginPage
+        LoginPage --> SignupPage: Click signup
+        SignupPage --> LoginPage: Click login
+        LoginPage --> Authenticating: Submit credentials
+        SignupPage --> Authenticating: Submit registration
+        Authenticating --> LoginPage: Auth failed
+        Authenticating --> Authenticated: Auth success
+    }
+    
+    state Authenticated {
+        [*] --> HomePage
+        
+        state HomePage {
+            [*] --> LoadingPhotos
+            LoadingPhotos --> PhotoGrid: Photos loaded
+            LoadingPhotos --> ErrorState: Load failed
+            PhotoGrid --> PhotoDetail: Click photo
+            PhotoDetail --> PhotoGrid: Close detail
+            ErrorState --> LoadingPhotos: Retry
+        }
+        
+        state UploadPage {
+            [*] --> SelectFiles
+            SelectFiles --> FilesSelected: Files chosen
+            FilesSelected --> Uploading: Start upload
+            FilesSelected --> AddingMetadata: Add details
+            AddingMetadata --> Uploading: Submit upload
+            Uploading --> UploadComplete: Upload success
+            Uploading --> UploadError: Upload failed
+            UploadComplete --> SelectFiles: Upload more
+            UploadError --> FilesSelected: Retry
+        }
+        
+        state ProfilePage {
+            [*] --> LoadingProfile
+            LoadingProfile --> ViewingProfile: Profile loaded
+            LoadingProfile --> ProfileError: Load failed
+            ViewingProfile --> EditingProfile: Click edit
+            EditingProfile --> SavingProfile: Save changes
+            EditingProfile --> ViewingProfile: Cancel
+            SavingProfile --> ViewingProfile: Save success
+            SavingProfile --> ProfileError: Save failed
+            ProfileError --> LoadingProfile: Retry
+        }
+        
+        HomePage --> UploadPage: Navigate to upload
+        HomePage --> ProfilePage: Navigate to profile
+        UploadPage --> HomePage: Navigate home
+        UploadPage --> ProfilePage: Navigate to profile
+        ProfilePage --> HomePage: Navigate home
+        ProfilePage --> UploadPage: Navigate to upload
+    }
+    
+    Authenticated --> Unauthenticated: Logout
+    Authenticated --> Loading: Session expired

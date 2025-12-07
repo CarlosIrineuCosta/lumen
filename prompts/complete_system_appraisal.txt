@@ -1,0 +1,184 @@
+# Complete System Appraisal Prompt
+# Usage: Run this when you need a comprehensive evaluation of the entire Lumen system
+# After this appraisal, have a DIFFERENT LLM (Codex or Gemini) cross-check the results
+
+## PROMPT FOR SYSTEM APPRAISAL:
+
+You are conducting a complete system appraisal of the Lumen photography platform. This is a comprehensive evaluation requiring analysis of documentation, code, tests, infrastructure, and architecture.
+
+### SYSTEM OVERVIEW
+Lumen is a photography management platform with:
+- Backend: FastAPI (Python 3.11+) with SQLAlchemy ORM
+- Frontend: Vanilla JavaScript with Poor Man's Modules (PMM) pattern
+- Database: PostgreSQL with Cloud SQL support
+- Storage: Google Cloud Storage + local development option
+- Authentication: Firebase JWT-based system
+- Caching: Redis implementation (652 lines of code)
+- Multi-agent system for coordination
+
+### APPRAISAL REQUIREMENTS:
+
+#### 1. DOCUMENTATION ANALYSIS (Weight: 20%)
+- Analyze ALL markdown files in the project (excluding /archive)
+- Evaluate completeness, accuracy, and organization
+- Check for duplicate/conflicting information
+- Assess architectural documentation quality
+- Verify API documentation exists and is accurate
+- Review deployment and setup guides
+- Identify missing critical documentation
+
+#### 2. CODE QUALITY AUDIT (Weight: 30%)
+- Backend Analysis:
+  - Review all Python files in /backend/app/
+  - Check API endpoint implementation (/api/v1/ consistency)
+  - Analyze service layer architecture
+  - Review database models and relationships
+  - Check error handling patterns
+  - Verify security implementations
+  - Check for hardcoded credentials, debug statements
+  - Assess code organization and modularity
+
+- Frontend Analysis:
+  - Review all JavaScript modules in /frontend/js/
+  - Check PMM pattern implementation consistency
+  - Analyze API call patterns and error handling
+  - Review UI component architecture
+  - Check for jQuery vs vanilla JS consistency
+  - Assess module loading and initialization
+
+#### 3. TEST COVERAGE ANALYSIS (Weight: 20%)
+- Find all test files (*.test.py, test_*.py)
+- Analyze test coverage by module
+- Check for unit, integration, and E2E tests
+- Verify API endpoint tests exist
+- Check authentication/authorization tests
+- Assess test quality and assertions
+- Identify critical modules without tests
+- Review test fixtures and data setup
+
+#### 4. INFRASTRUCTURE & DEPLOYMENT (Weight: 15%)
+- Review deployment configurations
+- Check Docker setup and Dockerfiles
+- Analyze CI/CD pipeline (GitHub Actions)
+- Review production monitoring setup
+- Check backup and disaster recovery plans
+- Verify environment variable management
+- Assess scalability considerations
+
+#### 5. SECURITY ASSESSMENT (Weight: 15%)
+- Check authentication flow implementation
+- Review API security (rate limiting, CORS, headers)
+- Check for exposed credentials or secrets
+- Analyze input validation and sanitization
+- Review database security (SQL injection prevention)
+- Check file upload security
+- Assess logging and monitoring for security
+
+#### 6. FUNCTIONALITY REVIEW (Weight: 10%)
+- Core Features:
+  - User registration/authentication
+  - Photo upload/management
+  - Gallery display
+  - Search functionality
+  - User profiles
+  - Series/collections
+  - Tagging system
+- Check for incomplete features
+- Identify broken functionality
+- Review user experience flow
+
+### ANALYSIS METHOD:
+
+1. **Use Glob extensively** to find all relevant files
+2. **Read key files** to understand implementation
+3. **Cross-reference** documentation vs implementation
+4. **Check for consistency** across the codebase
+5. **Identify gaps** and missing components
+6. **Assess production readiness**
+
+### OUTPUT FORMAT:
+
+Provide a comprehensive appraisal report with:
+
+#### Executive Summary
+- Overall system health score (0-10)
+- Critical blockers for production
+- Major strengths and weaknesses
+- Recommended timeline to production
+
+#### Detailed Analysis
+For each section above, provide:
+- Current state assessment
+- Issues found with severity levels (Critical/High/Medium/Low)
+- Code file references with line numbers where applicable
+- Metrics and measurements where possible
+- Specific recommendations
+
+#### Risk Matrix
+- High-risk areas requiring immediate attention
+- Medium-risk items for short-term resolution
+- Low-risk items for long-term consideration
+
+#### Production Readiness Checklist
+- Security hardening requirements
+- Infrastructure needs
+- Feature completion status
+- Testing coverage gaps
+- Documentation completeness
+
+#### Action Plan
+- Prioritized list of tasks
+- Estimated effort for each task
+- Dependencies between tasks
+- Recommended sequence of work
+
+### IMPORTANT NOTES:
+1. **Check actual implementation, not assumptions**
+2. **Verify code against documentation**
+3. **Look for working features, not just intended ones**
+4. **Consider the archived tasks as context**
+5. **Be thorough but practical in recommendations**
+
+### CROSS-REFERENCE CHECKLIST:
+After this appraisal, have another LLM verify:
+- Are critical issues correctly identified?
+- Is the production readiness score accurate?
+- Are any working features mischaracterized?
+- Are the recommendations practical and prioritized correctly?
+
+---
+
+## INSTRUCTIONS FOR CROSS-CHECKING:
+
+After the system appraisal is complete, run this cross-check prompt:
+
+### CROSS-CHECK PROMPT FOR DIFFERENT LLM:
+
+You are cross-checking a system appraisal of the Lumen photography platform. The primary appraisal was conducted by [LLM Name]. Your task is to:
+
+1. **Verify Critical Findings**
+   - Review the critical issues identified
+   - Check if severity levels are appropriate
+   - Confirm no critical issues were missed
+
+2. **Validate Assessments**
+   - Verify working features are correctly identified
+   - Check if broken functionality is accurately described
+   - Ensure production readiness score is realistic
+
+3. **Review Recommendations**
+   - Assess if the action plan is practical
+   - Check if priorities are correct
+   - Verify timeline estimates are reasonable
+
+4. **Identify Discrepancies**
+   - Point out any incorrect assumptions
+   - Note any over-optimistic or pessimistic assessments
+   - Highlight missing considerations
+
+5. **Provide Independent Assessment**
+   - Give your own overall system health score
+   - List any additional critical issues found
+   - Suggest alternative approaches if needed
+
+Focus on being thorough but fair. The goal is an accurate, actionable appraisal that will guide the development team effectively.

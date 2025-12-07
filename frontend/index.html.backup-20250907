@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Lumen - Professional Photography Platform">
+    <title>Lumen Photography</title>
+    
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1a1a2e">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.0/dist/cdn.min.js"></script>
+    
+    <!-- Preline UI - temporarily disabled due to CDN issues -->
+    <!-- <link rel="stylesheet" href="https://unpkg.com/preline@3.2.3/dist/preline.min.css"> -->
+    <!-- <script src="https://unpkg.com/preline@3.2.3/dist/preline.min.js"></script> -->
+    
+    <!-- lightGallery for photo viewing -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.8.3/css/lightgallery-bundle.css">
+    <script src="https://cdn.jsdelivr.net/npm/lightgallery@2.8.3/lightgallery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lightgallery@2.8.3/plugins/thumbnail/lg-thumbnail.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lightgallery@2.8.3/plugins/zoom/lg-zoom.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lightgallery@2.8.3/plugins/fullscreen/lg-fullscreen.min.js"></script>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    
+    <!-- FilePond for uploads -->
+    <link href="https://unpkg.com/filepond@4.32.8/dist/filepond.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/filepond@4.32.8/dist/filepond.min.js"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    
+    <!-- Custom Glass Morphism Styles -->    <style>
+        :root {
+            --glass-bg: rgba(17, 25, 40, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.125);
+            --glass-light: rgba(255, 255, 255, 0.1);
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #0a0a0a;
+            min-height: 100vh;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #c471f5 75%, #667eea 100%);
+            opacity: 0.05;
+            z-index: -1;
+        }
+        
+        .font-display {
+            font-family: 'Montserrat', sans-serif;
+        }        
+        /* Glass morphism effects */
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border: 1px solid var(--glass-border);
+        }
+        
+        .glass-light {
+            background: var(--glass-light);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .glass-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .glass-hover:hover {
+            background: rgba(17, 25, 40, 0.85);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        /* Masonry grid */
+        .masonry {
+            column-count: 1;
+            column-gap: 1rem;
+        }
+        
+        @media (min-width: 640px) { .masonry { column-count: 2; } }        @media (min-width: 1024px) { .masonry { column-count: 3; } }
+        @media (min-width: 1280px) { .masonry { column-count: 4; } }
+        
+        .masonry-item {
+            break-inside: avoid;
+            margin-bottom: 1rem;
+        }
+        
+        /* lightGallery Glass Morphism Overrides */
+        .lg-backdrop {
+            background: rgba(0, 0, 0, 0.85) !important;
+            backdrop-filter: blur(10px);
+        }
+        
+        .lg-toolbar {
+            background: var(--glass-bg) !important;
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border-bottom: 1px solid var(--glass-border);
+        }
+        
+        .lg-sub-html {
+            background: var(--glass-bg) !important;
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border-top: 1px solid var(--glass-border);
+        }
+        
+        .lg-thumb-outer {
+            background: rgba(17, 25, 40, 0.65) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-top: 1px solid var(--glass-border);
+        }
+        
+        .lg-thumb-item {
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .lg-thumb-item:hover,
+        .lg-thumb-item.active {
+            border-color: var(--glass-border);
+            background: var(--glass-light);
+        }
+        
+        .lg-actions .lg-next,
+        .lg-actions .lg-prev {
+            background: var(--glass-bg) !important;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+        }
+        
+        .lg-zoom-in,
+        .lg-zoom-out,
+        .lg-download,
+        .lg-fullscreen,
+        .lg-close {
+            background: var(--glass-bg) !important;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 6px;
+        }
+
+        /* Loading spinner */
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top: 3px solid #667eea;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="text-gray-100">
+    
+<div x-data="lumenApp()" x-init="init()" class="min-h-screen">
+    
+    <!-- Navigation -->
+    <nav class="glass fixed top-0 w-full z-50 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">            <!-- Logo -->
+            <h1 class="font-display text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                Lumen
+            </h1>
+            
+            <!-- Desktop Navigation Links -->
+            <div class="hidden md:flex space-x-6">
+                <button @click="currentView = 'gallery'" 
+                        :class="currentView === 'gallery' ? 'text-white' : 'text-gray-400'"
+                        class="hover:text-white transition">
+                    Gallery
+                </button>
+                <button @click="currentView = 'upload'" 
+                        :class="currentView === 'upload' ? 'text-white' : 'text-gray-400'"
+                        class="hover:text-white transition">
+                    Upload
+                </button>
+                <button @click="currentView = 'profile'" 
+                        :class="currentView === 'profile' ? 'text-white' : 'text-gray-400'"
+                        class="hover:text-white transition">
+                    Profile
+                </button>
+            </div>
+            
+            <!-- Mobile Menu Button -->
+            <div class="md:hidden flex items-center space-x-4">
+                <template x-if="user">
+                    <span class="text-sm" x-text="user.display_name"></span>
+                </template>
+                <button @click="mobileMenuOpen = !mobileMenuOpen" class="text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              :d="mobileMenuOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16M4 18h16'"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Desktop Auth Status -->
+            <div class="hidden md:flex items-center space-x-4">
+                <template x-if="user">
+                    <div class="flex items-center space-x-4">
+                        <span class="text-sm" x-text="user.display_name"></span>
+                        <button @click="logout()" class="glass-light px-3 py-1 rounded-lg text-sm">
+                            Logout                        </button>
+                    </div>
+                </template>
+                <template x-if="!user">
+                    <button @click="login()" class="glass-light px-4 py-2 rounded-lg">
+                        Login
+                    </button>
+                </template>
+            </div>
+        </div>
+        
+        <!-- Mobile Navigation Menu -->
+        <div x-show="mobileMenuOpen" 
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 transform -translate-y-2"
+             x-transition:enter-end="opacity-100 transform translate-y-0"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 transform translate-y-0"
+             x-transition:leave-end="opacity-0 transform -translate-y-2"
+             class="md:hidden mt-4 glass-light rounded-lg p-4">
+            <div class="flex flex-col space-y-3">
+                <button @click="currentView = 'gallery'; mobileMenuOpen = false" 
+                        :class="currentView === 'gallery' ? 'text-white bg-purple-600/20' : 'text-gray-400'"
+                        class="text-left px-3 py-2 rounded hover:text-white hover:bg-purple-600/10 transition">
+                    Gallery
+                </button>
+                <button @click="currentView = 'upload'; mobileMenuOpen = false" 
+                        :class="currentView === 'upload' ? 'text-white bg-purple-600/20' : 'text-gray-400'"
+                        class="text-left px-3 py-2 rounded hover:text-white hover:bg-purple-600/10 transition">
+                    Upload
+                </button>
+                <button @click="currentView = 'profile'; mobileMenuOpen = false" 
+                        :class="currentView === 'profile' ? 'text-white bg-purple-600/20' : 'text-gray-400'"
+                        class="text-left px-3 py-2 rounded hover:text-white hover:bg-purple-600/10 transition">
+                    Profile
+                </button>
+                <hr class="border-gray-600 my-2">
+                <template x-if="user">
+                    <button @click="logout(); mobileMenuOpen = false" class="text-left px-3 py-2 rounded text-red-400 hover:text-red-300 transition">
+                        Logout
+                    </button>
+                </template>
+                <template x-if="!user">
+                    <button @click="login(); mobileMenuOpen = false" class="text-left px-3 py-2 rounded text-purple-400 hover:text-purple-300 transition">
+                        Login
+                    </button>
+                </template>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <main class="pt-20 px-6 pb-12">
+        <div class="max-w-7xl mx-auto">
+            
+            <!-- Loading State -->
+            <div x-show="loading" class="flex justify-center items-center h-64">
+                <div class="spinner"></div>
+            </div>
+            
+            <!-- Gallery View -->
+            <div x-show="!loading && currentView === 'gallery'" x-transition>
+                <h2 class="font-display text-3xl mb-8">Discover Photography</h2>
+                
+                <!-- Filter Bar -->
+                <div class="glass rounded-lg p-4 mb-8 flex flex-wrap gap-4">
+                    <button @click="filterBy('all')" 
+                            :class="currentFilter === 'all' ? 'glass text-white' : 'glass-light'"
+                            class="px-4 py-2 rounded-lg">All Photos</button>
+                    <button @click="filterBy('photographer')" 
+                            :class="currentFilter === 'photographer' ? 'glass text-white' : 'glass-light'"
+                            class="px-4 py-2 rounded-lg">By Photographer</button>
+                    <button @click="filterBy('location')" 
+                            :class="currentFilter === 'location' ? 'glass text-white' : 'glass-light'"
+                            class="px-4 py-2 rounded-lg">By Location</button>
+                    <button @click="sortBy('latest')" 
+                            :class="currentSort === 'latest' ? 'glass text-white' : 'glass-light'"
+                            class="px-4 py-2 rounded-lg">Latest First</button>
+                    <button @click="sortBy('popular')" 
+                            :class="currentSort === 'popular' ? 'glass text-white' : 'glass-light'"
+                            class="px-4 py-2 rounded-lg">Most Liked</button>
+                </div>
+                
+                <!-- Photo Grid -->
+                <div class="masonry">
+                    <template x-for="photo in photos" :key="photo.id">
+                        <div class="masonry-item">
+                            <div class="glass glass-hover rounded-lg overflow-hidden cursor-pointer"
+                                 @click="viewPhoto(photo)">
+                                <img :src="photo.thumbnail_path || 'https://via.placeholder.com/400'" 
+                                     :alt="photo.title"
+                                     class="w-full">
+                                <div class="p-4">
+                                    <h3 class="font-medium" x-text="photo.title"></h3>
+                                    <p class="text-sm text-gray-400" x-text="photo.user?.display_name || 'Unknown'"></p>
+                                    <p class="text-xs text-gray-500 mt-1" x-text="photo.location_display"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                
+                <!-- Load More Button -->
+                <div class="text-center mt-8" x-show="hasMore && !loading">
+                    <button @click="loadMorePhotos()" 
+                            class="glass-light px-6 py-3 rounded-lg hover:glass transition-all">
+                        Load More Photos
+                    </button>
+                </div>
+                
+                <!-- Photo Count Info -->
+                <div class="text-center mt-4 text-gray-400 text-sm">
+                    <span x-text="`Showing ${photos.length} of ${totalPhotos} photos`"></span>
+                </div>
+            </div>
+            
+            <!-- Upload View -->
+            <div x-show="!loading && currentView === 'upload'" x-transition>
+                <h2 class="font-display text-3xl mb-8">Upload Photos</h2>
+                
+                <div class="glass rounded-lg p-8 max-w-2xl mx-auto">
+                    <input type="file" 
+                           id="filepond"
+                           name="photos"
+                           multiple
+                           accept="image/*">
+                                        <button @click="uploadPhotos()" class="glass-light px-6 py-3 rounded-lg w-full mt-6">
+                        Upload Selected Photos
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Profile View -->
+            <div x-show="!loading && currentView === 'profile'" x-transition>
+                <h2 class="font-display text-3xl mb-8">Your Profile</h2>
+                
+                <div class="glass rounded-lg p-8 max-w-2xl mx-auto">
+                    <template x-if="user">
+                        <div>
+                            <div class="mb-6">
+                                <label class="block text-sm text-gray-400 mb-2">Display Name</label>
+                                <input type="text" 
+                                       x-model="user.display_name"
+                                       class="w-full glass-light bg-transparent rounded-lg px-4 py-2 text-white">
+                            </div>
+                            <div class="mb-6">
+                                <label class="block text-sm text-gray-400 mb-2">Email</label>
+                                <input type="email" 
+                                       x-model="user.email"
+                                       disabled
+                                       class="w-full glass-light bg-transparent rounded-lg px-4 py-2 text-gray-400">
+                            </div>
+                            <button @click="updateProfile()" class="glass-light px-6 py-3 rounded-lg w-full">
+                                Update Profile
+                            </button>
+                        </div>
+                    </template>                </div>
+            </div>
+            
+        </div>
+    </main>
+    
+</div>
+
+<!-- Alpine.js Application -->
+<script>
+// Firebase Configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyDGPTM9AEQVsXhD3w3VVzZoYKE0hJAyGVc",
+    authDomain: "lumen-photos-dev.firebaseapp.com",
+    projectId: "lumen-photos-dev",
+    storageBucket: "lumen-photos-dev.appspot.com",
+    messagingSenderId: "123456789",
+    appId: "1:123456789:web:abcdef123456"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+
+// API Service
+const API = {
+    baseURL: 'http://100.106.201.33:8080/api/v1',
+    
+    async request(endpoint, options = {}) {
+        const token = localStorage.getItem('authToken');
+        const headers = {
+            'Content-Type': 'application/json',
+            ...options.headers
+        };
+        
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        const response = await fetch(`${this.baseURL}${endpoint}`, {
+            ...options,
+            headers
+        });
+        
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.status}`);
+        }        
+        return response.json();
+    },
+    
+    async getPhotos(page = 1) {
+        return this.request(`/photos/?page=${page}`);
+    },
+    
+    async uploadPhoto(formData) {
+        const token = localStorage.getItem('authToken');
+        const response = await fetch(`${this.baseURL}/photos/upload`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: formData
+        });
+        return response.json();
+    },
+    
+    async getProfile() {
+        return this.request('/users/profile');
+    },
+    
+    async updateProfile(data) {
+        return this.request('/users/profile', {
+            method: 'PUT',
+            body: JSON.stringify(data)
+        });
+    }
+};
+
+// Alpine.js Application
+function lumenApp() {
+    return {
+        // State
+        user: null,
+        photos: [],
+        allPhotos: [], // Store original unfiltered photos
+        currentView: 'gallery',
+        loading: false,
+        pond: null,
+        currentFilter: 'all',
+        currentSort: 'latest',
+        currentPage: 1,
+        hasMore: false,
+        totalPhotos: 0,
+        mobileMenuOpen: false,
+        lgInstance: null, // lightGallery instance
+        
+        // Initialization
+        async init() {
+            this.loading = true;
+            
+            // Check auth status
+            const token = localStorage.getItem('authToken');
+            if (token) {
+                try {
+                    this.user = await API.getProfile();
+                } catch (error) {
+                    console.error('Auth check failed:', error);
+                    localStorage.removeItem('authToken');
+                }
+            }
+            
+            // Load initial photos
+            await this.loadPhotos();
+            
+            // Initialize FilePond for uploads
+            if (document.querySelector('#filepond')) {
+                this.pond = FilePond.create(document.querySelector('#filepond'), {
+                    allowMultiple: true,
+                    maxFiles: 10,
+                    acceptedFileTypes: ['image/*']
+                });
+            }            
+            this.loading = false;
+        },
+        
+        // Methods
+        async loadPhotos() {
+            try {
+                const response = await API.getPhotos();
+                // Map backend response to frontend format
+                const mappedPhotos = (response.photos || []).map(photo => ({
+                    id: photo.id,
+                    title: photo.title,
+                    description: photo.description,
+                    thumbnail_path: photo.thumbnail_url,
+                    file_path: photo.image_url,
+                    user: {
+                        display_name: photo.photographer_name
+                    },
+                    like_count: photo.like_count,
+                    location_display: photo.location_display,
+                    upload_date: photo.upload_date
+                }));
+                
+                this.allPhotos = mappedPhotos; // Store original
+                this.photos = [...mappedPhotos]; // Display copy
+                this.totalPhotos = response.total_count || mappedPhotos.length;
+                this.hasMore = response.has_more || false;
+                this.applyCurrentFilters(); // Apply any active filters
+                
+                console.log(`Loaded ${this.photos.length} photos from backend (${this.totalPhotos} total)`);
+                
+                // Initialize lightGallery after photos load
+                setTimeout(() => {
+                    this.initializeLightGallery();
+                }, 100);
+            } catch (error) {
+                console.error('Failed to load photos:', error);
+                // Use demo data if API fails
+                this.photos = [
+                    { id: 1, title: 'Demo Photo 1', thumbnail_path: 'https://picsum.photos/400/600?random=1', user: { display_name: 'Demo User' } },
+                    { id: 2, title: 'Demo Photo 2', thumbnail_path: 'https://picsum.photos/400/500?random=2', user: { display_name: 'Demo User' } },
+                    { id: 3, title: 'Demo Photo 3', thumbnail_path: 'https://picsum.photos/400/700?random=3', user: { display_name: 'Demo User' } },
+                ];
+            }
+        },
+        
+        async login() {
+            // Simple email/password login for now
+            const email = prompt('Enter your email:');
+            if (!email) return;
+            
+            const password = prompt('Enter your password:');
+            if (!password) return;
+            
+            try {
+                this.loading = true;
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+                
+                // Get Firebase ID token
+                const idToken = await user.getIdToken();
+                
+                // Exchange with backend
+                const response = await API.request('/auth/login', {
+                    method: 'POST',
+                    body: JSON.stringify({ firebase_token: idToken })
+                });
+                
+                // Store auth token
+                localStorage.setItem('authToken', response.access_token);
+                
+                // Update user state
+                this.user = {
+                    uid: user.uid,
+                    email: user.email,
+                    display_name: user.displayName || user.email
+                };
+                
+                console.log('Login successful:', this.user);
+                
+            } catch (error) {
+                console.error('Login failed:', error);
+                alert('Login failed: ' + error.message);
+            } finally {
+                this.loading = false;
+            }
+        },
+                
+        async logout() {
+            try {
+                await auth.signOut();
+                localStorage.removeItem('authToken');
+                this.user = null;
+                this.currentView = 'gallery';
+                console.log('Logged out successfully');
+            } catch (error) {
+                console.error('Logout failed:', error);
+            }
+        },
+        
+        async uploadPhotos() {
+            if (!this.pond) return;
+            
+            const files = this.pond.getFiles();
+            if (files.length === 0) {
+                alert('Please select photos to upload');
+                return;
+            }
+            
+            if (!this.user) {
+                alert('Please login first to upload photos');
+                return;
+            }
+            
+            try {
+                this.loading = true;
+                
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i].file;
+                    
+                    // Create FormData for multipart upload
+                    const formData = new FormData();
+                    formData.append('photo', file);
+                    formData.append('title', file.name.split('.')[0]); // Use filename as title
+                    formData.append('description', ''); // Empty description for now
+                    
+                    console.log(`Uploading photo ${i + 1}/${files.length}: ${file.name}`);
+                    
+                    const response = await API.uploadPhoto(formData);
+                    console.log(`Upload ${i + 1} successful:`, response);
+                }
+                
+                // Clear the upload queue
+                this.pond.removeFiles();
+                
+                // Refresh the gallery to show new photos
+                await this.loadPhotos();
+                
+                alert(`Successfully uploaded ${files.length} photos!`);
+                
+                // Switch back to gallery view
+                this.currentView = 'gallery';
+                
+            } catch (error) {
+                console.error('Upload failed:', error);
+                alert('Upload failed: ' + error.message);
+            } finally {
+                this.loading = false;
+            }
+        },
+        
+        async updateProfile() {
+            try {
+                await API.updateProfile(this.user);
+                alert('Profile updated successfully');
+            } catch (error) {
+                alert('Failed to update profile');
+            }
+        },
+        
+        viewPhoto(photo) {
+            // Create a temporary gallery for this photo and similar ones
+            const currentIndex = this.photos.findIndex(p => p.id === photo.id);
+            if (currentIndex !== -1) {
+                this.openLightGallery(currentIndex);
+            }
+        },
+        
+        initializeLightGallery() {
+            // Destroy existing instance if any
+            if (this.lgInstance) {
+                this.lgInstance.destroy();
+            }
+        },
+        
+        openLightGallery(startIndex = 0) {
+            // Create dynamic gallery data
+            const galleryItems = this.photos.map(photo => ({
+                src: photo.file_path || photo.thumbnail_path,
+                thumb: photo.thumbnail_path,
+                subHtml: `<div class="lg-sub-html">
+                    <h4>${photo.title || 'Untitled'}</h4>
+                    <p>by ${photo.user?.display_name || 'Unknown'}</p>
+                    ${photo.description ? `<p>${photo.description}</p>` : ''}
+                    ${photo.location_display ? `<p><small>${photo.location_display}</small></p>` : ''}
+                </div>`
+            }));
+            
+            // Initialize lightGallery dynamically
+            const galleryContainer = document.createElement('div');
+            galleryContainer.style.display = 'none';
+            document.body.appendChild(galleryContainer);
+            
+            this.lgInstance = lightGallery(galleryContainer, {
+                dynamic: true,
+                dynamicEl: galleryItems,
+                thumbnail: true,
+                zoom: true,
+                fullScreen: true,
+                download: false,
+                addClass: 'lg-glass-theme',
+                plugins: [lgThumbnail, lgZoom, lgFullscreen],
+                speed: 500,
+                counter: true,
+                closable: true,
+                mousewheel: true,
+                // Start at the selected photo
+                index: startIndex,
+                // Clean up when closed
+                onCloseAfter: () => {
+                    if (this.lgInstance) {
+                        this.lgInstance.destroy();
+                        this.lgInstance = null;
+                    }
+                    if (galleryContainer && galleryContainer.parentNode) {
+                        galleryContainer.parentNode.removeChild(galleryContainer);
+                    }
+                }
+            });
+        },
+        
+        filterBy(category) {
+            console.log('Filtering by:', category);
+            this.currentFilter = category;
+            this.applyCurrentFilters();
+        },
+        
+        sortBy(sortType) {
+            console.log('Sorting by:', sortType);
+            this.currentSort = sortType;
+            this.applyCurrentFilters();
+        },
+        
+        applyCurrentFilters() {
+            let filtered = [...this.allPhotos];
+            
+            // Apply filter
+            if (this.currentFilter === 'photographer') {
+                // Group by photographer - show only photos from photographers with multiple photos
+                const photographerCounts = {};
+                this.allPhotos.forEach(photo => {
+                    const name = photo.user.display_name;
+                    photographerCounts[name] = (photographerCounts[name] || 0) + 1;
+                });
+                filtered = filtered.filter(photo => photographerCounts[photo.user.display_name] > 1);
+            } else if (this.currentFilter === 'location') {
+                // Show only photos with specific locations (not "Test Location")
+                filtered = filtered.filter(photo => 
+                    photo.location_display && !photo.location_display.includes('Test Location')
+                );
+            }
+            // 'all' shows everything
+            
+            // Apply sort
+            if (this.currentSort === 'latest') {
+                filtered.sort((a, b) => new Date(b.upload_date) - new Date(a.upload_date));
+            } else if (this.currentSort === 'popular') {
+                filtered.sort((a, b) => b.like_count - a.like_count);
+            }
+            
+            this.photos = filtered;
+            console.log(`Applied filters: ${filtered.length} photos shown`);
+        },
+        
+        async loadMorePhotos() {
+            if (this.loading || !this.hasMore) return;
+            
+            this.loading = true;
+            try {
+                this.currentPage++;
+                const response = await API.getPhotos(this.currentPage);
+                
+                // Map new photos
+                const newPhotos = (response.photos || []).map(photo => ({
+                    id: photo.id,
+                    title: photo.title,
+                    description: photo.description,
+                    thumbnail_path: photo.thumbnail_url,
+                    file_path: photo.image_url,
+                    user: {
+                        display_name: photo.photographer_name
+                    },
+                    like_count: photo.like_count,
+                    location_display: photo.location_display,
+                    upload_date: photo.upload_date
+                }));
+                
+                // Add to existing photos
+                this.allPhotos = [...this.allPhotos, ...newPhotos];
+                this.hasMore = response.has_more || false;
+                this.applyCurrentFilters();
+                
+                console.log(`Loaded ${newPhotos.length} more photos (page ${this.currentPage})`);
+                
+                // Re-initialize lightGallery for new photos
+                setTimeout(() => {
+                    this.initializeLightGallery();
+                }, 100);
+                
+            } catch (error) {
+                console.error('Failed to load more photos:', error);
+                this.currentPage--; // Reset page on error
+            } finally {
+                this.loading = false;
+            }
+        }
+    };
+}
+
+// Initialize GLightbox when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    // Service Worker Registration for PWA
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log('Service Worker registered'))
+            .catch(err => console.error('Service Worker registration failed'));
+    }
+});
+</script>
+
+</body>
+</html>

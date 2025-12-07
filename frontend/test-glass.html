@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glass Morphism + DaisyUI Test</title>
+
+    <!-- Tailwind CSS + DaisyUI -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
+
+    <!-- Custom Glass CSS -->
+    <link rel="stylesheet" href="css/glass.css">
+
+    <script>
+        tailwind.config = {
+            content: ['./**/*.{html,js}'],
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'display': ['Montserrat', 'sans-serif'],
+                        'body': ['Roboto', 'sans-serif']
+                    },
+                    backdropBlur: {
+                        'glass': '12px',
+                        'strong': '20px'
+                    }
+                }
+            },
+            plugins: []
+        }
+        document.documentElement.setAttribute('data-theme', 'dark');
+    </script>
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+    </style>
+</head>
+<body class="p-8">
+    <div class="max-w-4xl mx-auto space-y-8">
+        <h1 class="text-4xl font-bold text-white text-center mb-8">
+            Glass Morphism + DaisyUI Integration Test
+        </h1>
+
+        <!-- Buttons Test -->
+        <div class="card glass">
+            <div class="card-body">
+                <h2 class="card-title text-white">Button Components</h2>
+                <div class="flex flex-wrap gap-4">
+                    <button class="btn btn-primary glass">Primary Glass</button>
+                    <button class="btn btn-secondary glass">Secondary Glass</button>
+                    <button class="btn btn-ghost glass">Ghost Glass</button>
+                    <button class="btn btn-circle glass">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Components Test -->
+        <div class="card glass">
+            <div class="card-body">
+                <h2 class="card-title text-white">Form Components</h2>
+                <div class="space-y-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text text-white">Input Glass</span>
+                        </label>
+                        <input type="text" placeholder="Type here..." class="input glass" />
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text text-white">Textarea Glass</span>
+                        </label>
+                        <textarea class="textarea glass" placeholder="Bio"></textarea>
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text text-white">Select Glass</span>
+                        </label>
+                        <select class="select glass">
+                            <option disabled selected>Pick your favorite</option>
+                            <option>Option 1</option>
+                            <option>Option 2</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Test -->
+        <div class="navbar glass rounded-lg">
+            <div class="navbar-start">
+                <div class="dropdown">
+                    <label tabindex="0" class="btn btn-ghost glass lg:hidden">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </label>
+                </div>
+                <a class="btn btn-ghost glass normal-case text-xl">Lumen</a>
+            </div>
+            <div class="navbar-center hidden lg:flex">
+                <ul class="menu menu-horizontal px-1 space-x-2">
+                    <li><a class="btn btn-ghost glass">Home</a></li>
+                    <li><a class="btn btn-ghost glass">Gallery</a></li>
+                    <li><a class="btn btn-ghost glass">About</a></li>
+                </ul>
+            </div>
+            <div class="navbar-end">
+                <button class="btn btn-primary glass">Get started</button>
+            </div>
+        </div>
+
+        <!-- Tabs Test -->
+        <div class="tabs tabs-boxed glass bg-transparent">
+            <a class="tab tab-active glass">Tab 1</a>
+            <a class="tab glass">Tab 2</a>
+            <a class="tab glass">Tab 3</a>
+        </div>
+
+        <!-- Modal Test -->
+        <div class="text-center">
+            <button class="btn btn-primary glass" onclick="document.getElementById('my_modal').showModal()">
+                Open Glass Modal
+            </button>
+        </div>
+
+        <dialog id="my_modal" class="modal">
+            <div class="modal-box glass">
+                <h3 class="font-bold text-lg text-white">Hello!</h3>
+                <p class="py-4 text-white/80">This modal has glass morphism effects!</p>
+                <div class="modal-action">
+                    <form method="dialog">
+                        <button class="btn btn-primary glass">Close</button>
+                    </form>
+                </div>
+            </div>
+            <div class="modal-backdrop bg-black/80 backdrop-blur-sm"></div>
+        </dialog>
+    </div>
+</body>
+</html>

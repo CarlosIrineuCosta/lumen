@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumen</title>
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/x-icon" href="/assets/icons/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/apple-touch-icon.png">
+    <link rel="manifest" href="/assets/icons/site.webmanifest">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+
+    <!-- Glassmorphism Core CSS -->
+    <link rel="stylesheet" href="css/glassmorphism-core.css">
+
+    <!-- External Dependencies CSS -->
+    <link href="https://unpkg.com/filepond/dist/filepond.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.8.3/css/lightgallery-bundle.css">
+    
+    <style>
+        body {
+            background-color: var(--glass-background-solid, #0a0a0a);
+            color: var(--glass-text-primary, #fff);
+            font-family: 'Roboto', sans-serif;
+        }
+        .main-content {
+            padding-top: 80px; /* Adjust for fixed navbar height */
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Navigation -->
+    <nav id="main-nav" class="glass-navbar glass-fixed glass-z-50">
+        <div class="glass-navbar-start">
+            <div class="glass-dropdown glass-hidden">
+                <label tabindex="0" class="glass-btn glass-btn-ghost glass-btn-circle">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </label>
+                <ul tabindex="0" class="glass-dropdown-content glass-menu glass-w-52">
+                    <li><a class="nav-link active" href="#gallery" data-route="gallery" data-i18n="nav.explore">Explore</a></li>
+                    <li><a class="nav-link" href="#profile" data-route="profile" data-i18n="nav.members">Members</a></li>
+                    <li><a class="nav-link" href="#series" data-route="series" data-i18n="nav.highlights">Highlights</a></li>
+                </ul>
+            </div>
+            <ul class="glass-menu glass-menu-horizontal">
+                <li><a href="#gallery" class="nav-link active" data-route="gallery" data-i18n="nav.explore">Explore</a></li>
+                <li><a href="#profile" class="nav-link" data-route="profile" data-i18n="nav.members">Members</a></li>
+                <li><a href="#series" class="nav-link" data-route="series" data-i18n="nav.highlights">Highlights</a></li>
+            </ul>
+        </div>
+        <div class="glass-navbar-end">
+            <button class="glass-btn glass-btn-ghost glass-btn-circle" id="search-toggle" title="Search">
+                <svg class="w-4 h-4" viewBox="0 0 16 16" fill="currentColor"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>
+            </button>
+            <button class="glass-btn glass-btn-ghost glass-btn-circle" id="profile-toggle" title="Profile" data-route="profile">
+                <svg class="w-4 h-4" viewBox="0 0 16 16" fill="currentColor"><path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z"/></svg>
+            </button>
+            <button class="glass-btn glass-btn-primary" id="add-photo" title="Add Photo" data-route="upload">
+                <svg class="w-5 h-5" viewBox="0 0 16 16" fill="currentColor"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/></svg>
+                <span data-i18n="nav.upload">Upload</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Category Navigation -->
+    <div id="category-nav" class="glass-tabs glass-p-2">
+        <button class="glass-tab tab-active" data-category="all" data-i18n="photos.allPhotos">All Photos</button>
+        <button class="glass-tab" data-category="portrait" data-i18n="categories.portrait">Portrait</button>
+        <button class="glass-tab" data-category="landscape" data-i18n="categories.landscape">Landscape</button>
+        <button class="glass-tab" data-category="street" data-i18n="categories.street">Street</button>
+    </div>
+
+    <!-- Main Content Area -->
+    <main id="main-content" class="glass-container main-content">
+        <div id="photo-gallery" class="photo-gallery"></div>
+        <div id="profile-view" class="profile-view glass-hidden"></div>
+        <div id="series-view" class="series-view glass-hidden"></div>
+    </main>
+
+    <!-- Modals -->
+    <dialog id="authModal" class="glass-modal">
+        <div class="glass-modal-box glass-w-full glass-max-w-xs glass-text-center">
+            <h3 class="glass-card-title" data-i18n="auth.login">Login</h3>
+            <p class="glass-text-secondary glass-py-4">Please sign in to continue.</p>
+            <div class="glass-modal-action glass-justify-center">
+                <button id="googleSignIn" class="glass-btn glass-btn-primary">Sign in with Google</button>
+            </div>
+        </div>
+    </dialog>
+
+    <dialog id="search-overlay" class="glass-modal">
+        <div class="glass-modal-box">
+            <h3 class="glass-card-title" data-i18n="search.title">Search Photos</h3>
+            <input type="text" id="search-input" class="glass-input glass-w-full" placeholder="Search for photos..." data-i18n-placeholder="search.placeholder">
+            <div id="search-results"></div>
+            <div class="glass-modal-action">
+                <button id="search-close" class="glass-btn" data-i18n="actions.close">Close</button>
+            </div>
+        </div>
+    </dialog>
+
+    <dialog id="settings-modal" class="glass-modal">
+        <div id="settings-modal-content-wrapper" class="glass-modal-box glass-w-11/12 glass-max-w-5xl glass-p-0">
+            <!-- Content from profile.js will be injected here -->
+        </div>
+    </dialog>
+
+    <!-- External Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://unpkg.com/masonry-layout@4/dist/masonry.pkgd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lightgallery@2.8.3/lightgallery.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="https://unpkg.com/filepond/dist/filepond.min.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.min.js"></script>
+
+    <!-- Lumen Core -->
+    <script src="config/glass-theme.js"></script>
+    <script src="js/glass-config-loader.js"></script>
+    <script src="i18n/en.js"></script>
+    <script src="js/i18n-helper.js"></script>
+    
+    <!-- Lumen Modules (Order Critical!) -->
+    <script src="js/config.js"></script>
+    <script src="js/templates.js"></script>
+    <script src="js/modules/utils.js"></script>
+    <script src="js/modules/api.js"></script>
+    <script src="js/modules/auth.js"></script>
+    <script src="js/modules/ui.js"></script>
+    <script src="js/modules/router.js"></script>
+    <script src="js/modules/gallery.js"></script>
+    <script src="js/modules/upload.js"></script>
+    <script src="js/modules/profile.js"></script>
+    <script src="js/modules/settings.js"></script>
+    <script src="js/modules/search.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/diagnostics.js"></script>
+    
+    <!-- Initialize Application -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            LumenApp.init();
+        });
+    </script>
+</body>
+</html>
