@@ -1,1 +1,0 @@
-../agent-system/hooks/auxiliary/root_protection.py

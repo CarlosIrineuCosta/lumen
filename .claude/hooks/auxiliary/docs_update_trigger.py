@@ -1,0 +1,1 @@
+/home/cdc/Storage/projects/lumen/agent-system/hooks/auxiliary/docs_update_trigger.py
