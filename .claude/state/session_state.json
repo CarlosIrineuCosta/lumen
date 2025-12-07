@@ -2,31 +2,7 @@
   "current_task": "Test with absolute path",
   "delegated_to_glm": [],
   "delegated_to_codex": [],
-  "pending_reviews": [
-    {
-      "file_path": "test/example.py",
-      "reviewer": "glm",
-      "author": "claude",
-      "status": "completed",
-      "timestamp": "2025-12-06T15:07:40.946492",
-      "review_id": "review_1765044460",
-      "completion_timestamp": "2025-12-06T15:07:40.946719",
-      "result": {
-        "approved": true,
-        "success": true,
-        "error": null,
-        "review": "Code looks good, no issues found."
-      }
-    },
-    {
-      "file_path": "test/another.py",
-      "reviewer": "codex",
-      "author": "glm",
-      "status": "pending",
-      "timestamp": "2025-12-06T15:07:40.946884",
-      "review_id": "review_1765044460"
-    }
-  ],
+  "pending_reviews": [],
   "last_agent": "claude",
   "glm_failures": 0,
   "codex_failures": 0,
@@ -35,7 +11,7 @@
   "hooks_executed": [
     "session_tracker"
   ],
-  "last_activity": "2025-12-06T15:02:44.681076",
+  "last_activity": "2025-12-06T22:24:13.293508",
   "session_id": "session_1765044164",
   "previous_session_id": "session_1765043911"
 }
