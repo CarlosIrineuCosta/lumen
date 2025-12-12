@@ -1,182 +1,116 @@
-# Agent System
+# Lumen Photography Platform
 
-A comprehensive multi-agent development system designed for coordinated software engineering workflows. This system provides structured coordination between an orchestrator (Claude) and multiple specialized agents.
+Professional photography platform designed as an ethical alternative to Instagram, prioritizing photographers' artistic freedom, professional networking, and quality over engagement metrics.
 
-## Architecture Overview
+**Last Updated**: August 13, 2025
 
-The Agent System implements a hierarchical coordination model with distinct roles:
+## Quick Links
 
-### Core Components
+- **Development Server**: http://100.106.201.33:8080 (API) via Tailscale
+- **Web Application**: http://100.106.201.33:8000
+- **API Documentation**: http://100.106.201.33:8080/docs
 
-1. **Orchestrator (Claude)**: High-level coordination and decision-making
-   - Manages overall project workflow
-   - Delegates tasks to specialized agents
-   - Ensures quality and consistency across implementations
+## Documentation Structure
 
-2. **Specialized Agents**: Domain-specific implementers
-   - Handle specific technical domains (backend, frontend, DevOps, etc.)
-   - Operate with well-defined interfaces and constraints
-   - Maintain autonomy within their specialized domains
+### 📁 Core Documents
+- [`CLAUDE.md`](CLAUDE.md) - Instructions for AI assistants (Claude Code & Gemini CLI)
+- [`PROJECT_VISION.md`](PROJECT_VISION.md) - Platform philosophy and core principles
+- [`SHARED-STATUS.md`](SHARED-STATUS.md) - Real-time coordination between AI assistants
+- [`README1st-13aug2025.md`](README1st-13aug2025.md) - Swiss VPS migration plan (today's priority)
 
-3. **Coordination Framework**: Structured communication layer
-   - Standardized interfaces between agents
-   - Quality gates and validation mechanisms
-   - Progress tracking and completion verification
+### 📁 Technical Documentation (`/docs/technical/`)
+- [`TECHNICAL-GUIDE.md`](docs/technical/TECHNICAL-GUIDE.md) - Complete technical implementation guide
+- [`API-REFERENCE.md`](docs/technical/API-REFERENCE.md) - API endpoints and usage
+- [`DATABASE-ARCHITECTURE.md`](docs/technical/DATABASE-ARCHITECTURE.md) - Critical database decisions
 
-### System Characteristics
+### 📁 Business Documentation (`/docs/business/`)
+- [`business-framework.md`](docs/business/business-framework.md) - Business model and monetization
+- [`content-policy.md`](docs/business/content-policy.md) - Content moderation guidelines
+- [`user-acquisition.md`](docs/business/user-acquisition.md) - Growth and marketing strategy
+- [`database-cost-analysis.md`](docs/business/database-cost-analysis.md) - Infrastructure cost analysis
 
-- **Modular Design**: Each agent operates independently within its domain
-- **Structured Communication**: Well-defined interfaces and protocols
-- **Quality Assurance**: Built-in validation and quality gates
-- **Scalable Architecture**: Easy to add new specialized agents
-- **Process Transparency**: Clear workflow visibility and audit trails
+### 📁 PWA Development (`/opusdev/`)
+- [`README.md`](opusdev/README.md) - PWA-specific documentation
+- [`DEVELOPMENT_ROADMAP_2025.md`](opusdev/DEVELOPMENT_ROADMAP_2025.md) - Current priorities and roadmap
+- [`CLAUDE_INSTRUCTIONS.md`](opusdev/CLAUDE_INSTRUCTIONS.md) - Claude Desktop specific instructions
 
-## System Validation
+### 📁 Archive (`/docs/archive/`)
+Historical documentation and session notes for reference.
 
-The enhanced validation script (`validate.py`) provides comprehensive system health checks:
+## Quick Start
 
-### Running Validation
+### Development Setup
 ```bash
-cd agent-system
-python3 validate.py
+# Start all services
+./scripts/server-manager.sh start
+
+# Check status
+./scripts/server-manager.sh status
+
+# Access points
+# Backend API: http://100.106.201.33:8080
+# Frontend App: http://100.106.201.33:8000
+# API Docs: http://100.106.201.33:8080/docs
 ```
 
-### Validation Coverage
-- Directory structure validation
-- Dependency checking and installation
-- Script syntax and import validation
-- Hook functionality testing
-- Configuration file validation
-- Agent communication testing
-- Session state functionality
-- Symlink validation
-- Cross-agent review system
-- Permission checking
+### For Developers
+1. Read [`TECHNICAL-GUIDE.md`](docs/technical/TECHNICAL-GUIDE.md) for architecture overview
+2. Check [`API-REFERENCE.md`](docs/technical/API-REFERENCE.md) for endpoint details
+3. Review [`DATABASE-ARCHITECTURE.md`](docs/technical/DATABASE-ARCHITECTURE.md) for critical decisions
 
-### System Health Assessment
-The validation script provides:
-- Overall system health score (0-100%)
-- Detailed check results with pass/fail status
-- Actionable recommendations for fixes
-- Clear success/failure reporting
+### For Business Planning
+1. Read [`PROJECT_VISION.md`](PROJECT_VISION.md) for platform philosophy
+2. Check [`business-framework.md`](docs/business/business-framework.md) for business model
+3. Review [`content-policy.md`](docs/business/content-policy.md) for moderation approach
 
-See `docs/VALIDATION_SCRIPT.md` for detailed validation documentation.
+## Project Overview
 
-## Installation Instructions
+Lumen is a professional photography platform with:
+- **No ads** - Clean, distraction-free experience
+- **No algorithms** - Chronological, user-controlled discovery
+- **Uncensored artistic expression** - Support for professional photography
+- **People-first discovery** - Find photographers/models, not just images
+- **Subscription model** - $5-150/year, no data exploitation
 
-For new projects, see the following files for setup instructions:
+## Technology Stack
 
-- **Templates**: `/agent-system/templates/` - Project initialization templates
-- **Configuration**: `/agent-system/config/` - System configuration files
-- **Environment Setup**: `/agent-system/config/.env.example` - Environment variables template
-- **Hook Settings**: `/agent-system/config/hooks_settings.json` - Hook configuration
+- **Backend**: FastAPI 0.104.1 (Python 3.11.x)
+- **Frontend**: PWA with vanilla JavaScript
+- **Database**: PostgreSQL via Cloud SQL
+- **Authentication**: Firebase Admin SDK
+- **Storage**: Google Cloud Storage
+- **Infrastructure**: Google Cloud Platform
 
-Key installation points:
-1. Copy templates to project root
-2. Configure environment variables
-3. Set up hooks for quality control
-4. Initialize project structure
-5. Run validation script to verify setup
+## Current Status
 
-## Agent Workflow
+### ✅ Working Features
+- Complete user registration and authentication
+- Photo upload and management pipeline
+- User profiles with photographer/model support
+- Discovery feeds and search functionality
+- Like system and social features
 
-### Typical Workflow Process
+### 🚧 In Progress
+- Swiss VPS migration planning
+- Performance optimization
+- Advanced geographic search
+- Mobile PWA improvements
 
-1. **Project Analysis**: Orchestrator conducts initial project assessment
-2. **Task Decomposition**: High-level tasks broken into domain-specific components
-3. **Agent Assignment**: Tasks delegated to appropriate specialized agents
-4. **Parallel Execution**: Agents work concurrently in their domains
-5. **Quality Validation**: Results pass through quality gates
-6. **Integration**: Components are integrated and tested
-7. **Completion Verification**: Final validation against project requirements
-
-### Communication Flow
-
-- **Upward Communication**: Agents report progress and issues to orchestrator
-- **Downward Communication**: Orchestrator provides guidance and constraints
-- **Peer Communication**: Agents coordinate interfaces and dependencies
-- **Artifact Exchange**: Structured exchange of deliverables between agents
-
-## Directory Structure
-
-```
-agent-system/
-├── commands/          # Executable command scripts
-├── config/           # Configuration files and settings
-├── docs/             # Documentation and guides
-├── hooks/            # Quality control and validation hooks
-│   ├── core/         # Core validation hooks
-│   └── auxiliary/    # Helper and utility hooks
-├── prompts/          # Agent-specific prompts and templates
-├── scripts/          # Python utilities and coordination scripts
-├── templates/        # Project initialization templates
-└── validate.py       # System validation script
-```
-
-### Component Roles
-
-- **Commands**: High-level operations and system commands
-- **Hooks**: Quality control points and validation logic
-- **Scripts**: Coordination and utility scripts
-- **Templates**: Project initialization boilerplates
-- **Prompts**: Agent-specific interaction patterns
-
-## System Operation
-
-### Claude as Orchestrator
-
-Claude operates as the central orchestrator with these responsibilities:
-
-- **Strategic Planning**: Defines high-level project architecture and approach
-- **Resource Allocation**: Assigns tasks to appropriate specialized agents
-- **Quality Oversight**: Ensures deliverables meet quality standards
-- **Integration Management**: Coordinates between different agent outputs
-- **Progress Tracking**: Monitors overall project progress and milestones
-
-### Specialized Agents
-
-Specialized agents operate with clear boundaries:
-
-- **Domain Expertise**: Each agent focuses on specific technical domains
-- **Interface Compliance**: Agents follow standardized interfaces and protocols
-- **Autonomous Operation**: Agents execute tasks independently within constraints
-- **Quality Accountability**: Agents ensure their deliverables meet quality standards
-
-### Coordination Mechanisms
-
-The system uses several coordination mechanisms:
-
-- **Structured Prompts**: Well-defined interaction templates for consistent communication
-- **Quality Gates**: Validation points that must be passed before proceeding
-- **Artifact Standards**: Defined formats and structures for exchanged deliverables
-- **Progress Reporting**: Regular status updates and milestone tracking
-
-## Troubleshooting
-
-For troubleshooting guidance, see `/docs/troubleshooting.md`. Key topics covered:
-- Common issues and their solutions
-- Debug hook failures and quality gate problems
-- Agent communication troubleshooting
-- Configuration and setup issues
-
-## Best Practices
-
-1. **Clear Task Definition**: Ensure tasks are well-defined before delegation
-2. **Quality Gates**: Always pass through defined validation points
-3. **Interface Compliance**: Maintain consistent interfaces between agents
-4. **Progress Reporting**: Provide regular updates on task completion
-5. **Documentation**: Keep documentation current with system changes
+### 📋 Next Priorities
+1. Execute Swiss VPS migration (see [`README1st-13aug2025.md`](README1st-13aug2025.md))
+2. Performance optimization (caching, CDN)
+3. Advanced search implementation
+4. Payment system integration
 
 ## Contributing
 
-When extending the system:
+This project uses AI-assisted development with:
+- **Claude Code**: Technical implementation lead
+- **Claude Desktop**: Systems architect
+- **Gemini CLI**: GCP/Firebase specialist
 
-1. **Define Clear Interfaces**: New agents must follow established patterns
-2. **Implement Quality Hooks**: Add appropriate validation for new components
-3. **Update Documentation**: Keep README and docs current
-4. **Test Integration**: Ensure new components work with existing system
-5. **Follow Templates**: Use established patterns for consistency
+Always check [`SHARED-STATUS.md`](SHARED-STATUS.md) for current coordination status.
 
 ---
 
-*For detailed implementation guidance, refer to the specific documentation files and templates referenced throughout this document.*
+For detailed information, explore the documentation structure above.

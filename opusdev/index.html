@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0a0a0a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <title>Lumen - Photography Without Compromise</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/app.css">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="96x96" href="assets/icons/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/web-app-manifest-192x192.png">
+    <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    
+    <!-- ExifReader for EXIF metadata extraction -->
+    <script src="https://cdn.jsdelivr.net/npm/exifreader@4.23.5/dist/exif-reader.js"></script>
+</head>
+<body>
+    <!-- App Shell -->
+    <div id="app" class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="brand">
+                    <h1 class="logo">LUMEN</h1>
+                </div>
+                
+                <nav class="nav-tabs">
+                    <button class="tab-btn active" data-view="home">Home</button>
+                    <button class="tab-btn" data-view="discover">Discover</button>
+                    <button class="tab-btn" data-view="photographers">Photographers</button>
+                    <button class="tab-btn" data-view="nearby">Nearby</button>
+                    <button class="tab-btn" data-view="portfolio">Portfolio</button>
+                </nav>
+                
+                <div class="header-actions">
+                    <button class="btn-upload" id="uploadBtn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 5v14M5 12h14"/>
+                        </svg>
+                    </button>
+                    <div class="profile-dropdown">
+                        <button class="btn-profile" id="profileBtn">
+                            <img src="" alt="Profile" class="profile-avatar" id="userAvatar">
+                        </button>
+                        <div class="dropdown-menu hidden" id="profileDropdown">
+                            <button class="dropdown-item" id="editProfileBtn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                    <path d="m18.5 2.5 a2.121 2.121 0 0 1 3 3l-2.5 2.5-3-3 2.5-2.5z"/>
+                                    <path d="m15 5 3 3"/>
+                                </svg>
+                                Edit Profile
+                            </button>
+                            <button class="dropdown-item" id="viewProfileBtn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                                View Profile
+                            </button>
+                            <div class="dropdown-divider"></div>
+                            <button class="dropdown-item logout" id="logoutBtn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                    <polyline points="16,17 21,12 16,7"/>
+                                    <line x1="21" y1="12" x2="9" y2="12"/>
+                                </svg>
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            <!-- Photo Grid -->
+            <div id="photoGrid" class="photo-grid">
+                <!-- Photos will be dynamically inserted here -->
+            </div>
+            
+            <!-- Loading State -->
+            <div class="loading-indicator" id="loadingIndicator">
+                <div class="spinner"></div>
+            </div>
+            
+            <!-- Empty State -->
+            <div class="empty-state hidden" id="emptyState">
+                <h2>No photos yet</h2>
+                <p>Be the first to share your work</p>
+                <button class="btn-primary">Upload Photo</button>
+            </div>
+        </main>
+
+        <!-- Photo Viewer Modal -->
+        <div class="photo-viewer hidden" id="photoViewer">
+            <button class="viewer-close" id="viewerClose">&times;</button>
+            <div class="viewer-content">
+                <img src="" alt="" class="viewer-image" id="viewerImage">
+                <div class="viewer-info">
+                    <div class="photographer-info">
+                        <img src="" alt="" class="photographer-avatar">
+                        <div>
+                            <h3 class="photographer-name"></h3>
+                            <p class="photographer-location"></p>
+                        </div>
+                    </div>
+                    <div class="photo-details">
+                        <p class="photo-title"></p>
+                        <p class="photo-camera"></p>
+                        <p class="photo-settings"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Upload Modal -->
+        <div class="upload-modal hidden" id="uploadModal">
+            <div class="modal-content">
+                <button class="modal-close" id="uploadClose">&times;</button>
+                <h2>Share Your Work</h2>
+                
+                <div class="upload-area" id="uploadArea">
+                    <input type="file" id="fileInput" accept="image/*" multiple hidden>
+                    <div class="upload-placeholder">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                            <polyline points="21 15 16 10 5 21"/>
+                        </svg>
+                        <p>Drop photos here or click to browse</p>
+                        <span class="upload-hint">JPEG, PNG up to 20MB</span>
+                    </div>
+                </div>
+                
+                <div class="upload-preview hidden" id="uploadPreview">
+                    <img src="" alt="Preview" id="previewImage">
+                    
+                    <!-- Basic Information -->
+                    <div class="form-section">
+                        <h3>Basic Information</h3>
+                        <input type="text" placeholder="Title (optional)" class="input-field" id="photoTitle">
+                        <textarea placeholder="Description (optional)" class="input-field" id="photoDescription" rows="3"></textarea>
+                    </div>
+                    
+                    <!-- Portfolio & Settings -->
+                    <div class="form-section form-row">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="isPortfolio">
+                            <span class="checkmark"></span>
+                            Portfolio Photo
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="isPublic" checked>
+                            <span class="checkmark"></span>
+                            Public
+                        </label>
+                    </div>
+                    
+                    <!-- People & Credits -->
+                    <div class="form-section">
+                        <h3>People & Credits</h3>
+                        <input type="text" placeholder="Photographer (auto-filled)" class="input-field" id="photographerName" readonly>
+                        <input type="text" placeholder="Model name (optional)" class="input-field" id="modelName">
+                    </div>
+                    
+                    <!-- Technical Details (Auto-extracted from EXIF) -->
+                    <div class="form-section">
+                        <h3>Technical Details</h3>
+                        <div class="form-row">
+                            <input type="text" placeholder="Camera" class="input-field half-width" id="cameraInfo">
+                            <input type="text" placeholder="Lens" class="input-field half-width" id="lensInfo">
+                        </div>
+                        <div class="form-row">
+                            <input type="text" placeholder="ISO" class="input-field quarter-width" id="isoValue">
+                            <input type="text" placeholder="Aperture" class="input-field quarter-width" id="apertureValue">
+                            <input type="text" placeholder="Shutter Speed" class="input-field quarter-width" id="shutterSpeed">
+                            <input type="text" placeholder="Focal Length" class="input-field quarter-width" id="focalLength">
+                        </div>
+                    </div>
+                    
+                    <!-- Location -->
+                    <div class="form-section">
+                        <h3>Location</h3>
+                        <input type="text" placeholder="Location (auto-extracted or manual)" class="input-field" id="locationInfo">
+                    </div>
+                    
+                    <button class="btn-primary" id="submitUpload">Upload Photo</button>
+                </div>
+            </div>
+        </div>
+        <!-- Profile View Modal -->
+        <div class="profile-view-modal hidden" id="profileViewModal">
+            <div class="modal-content">
+                <button class="modal-close" id="profileViewClose">&times;</button>
+                <div class="profile-header">
+                    <div class="profile-image-display">
+                        <img src="" alt="Profile" id="viewProfileImage" class="profile-image-large">
+                    </div>
+                    <div class="profile-basic-info">
+                        <h2 id="viewDisplayName">Loading...</h2>
+                        <p class="profile-username" id="viewUsername">@loading</p>
+                        <p class="profile-type" id="viewUserType">Loading...</p>
+                        <p class="profile-tagline" id="viewTagline"></p>
+                    </div>
+                </div>
+                
+                <div class="profile-content">
+                    <!-- Bio Section -->
+                    <div class="profile-section" id="bioSection">
+                        <h3>About</h3>
+                        <p id="viewBio">Loading bio...</p>
+                    </div>
+                    
+                    <!-- Artistic Statement -->
+                    <div class="profile-section" id="artisticSection">
+                        <h3>Artistic Vision</h3>
+                        <p id="viewArtisticStatement">Loading artistic statement...</p>
+                    </div>
+                    
+                    <!-- Mission Statement -->
+                    <div class="profile-section" id="missionSection">
+                        <h3>Mission</h3>
+                        <p id="viewMissionStatement">Loading mission statement...</p>
+                    </div>
+                    
+                    <!-- Professional Details -->
+                    <div class="profile-section" id="professionalSection">
+                        <h3>Professional Details</h3>
+                        <div class="profile-details-grid">
+                            <div class="detail-item">
+                                <span class="detail-label">Experience:</span>
+                                <span class="detail-value" id="viewExperience">Loading...</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Location:</span>
+                                <span class="detail-value" id="viewCity">Loading...</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Work Preference:</span>
+                                <span class="detail-value" id="viewLocationPreference">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Photography Styles (for photographers) -->
+                    <div class="profile-section hidden" id="photographyStylesViewSection">
+                        <h3>Photography Styles</h3>
+                        <div class="styles-tags" id="viewPhotographyStyles">
+                            <!-- Will be populated with style tags -->
+                        </div>
+                    </div>
+                    
+                    <!-- Model Details (for models) -->
+                    <div class="profile-section hidden" id="modelDetailsViewSection">
+                        <h3>Model Details</h3>
+                        <div class="profile-details-grid" id="viewModelDetails">
+                            <!-- Will be populated with model details -->
+                        </div>
+                    </div>
+                    
+                    <!-- Availability -->
+                    <div class="profile-section" id="availabilitySection">
+                        <h3>Availability</h3>
+                        <div class="availability-info" id="viewAvailability">
+                            <!-- Will show availability status and rate range -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action buttons for own profile -->
+                <div class="profile-actions" id="ownProfileActions">
+                    <button class="btn-secondary" id="editFromView">Edit Profile</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Edit Modal -->
+        <div class="profile-modal hidden" id="profileModal">
+            <div class="modal-content">
+                <button class="modal-close" id="profileClose">&times;</button>
+                <h2>Edit Profile</h2>
+                
+                <div class="profile-form">
+                    <!-- Profile Image Section -->
+                    <div class="form-section">
+                        <div class="profile-image-section">
+                            <div class="profile-image-container">
+                                <img src="" alt="Profile" id="profileImagePreview" class="profile-image-large">
+                                <button class="btn-change-image" id="changeImageBtn">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                                        <circle cx="12" cy="13" r="4"/>
+                                    </svg>
+                                    Change Photo
+                                </button>
+                                <input type="file" id="profileImageInput" accept="image/*" hidden>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Basic Information -->
+                    <div class="form-section">
+                        <h3>Basic Information</h3>
+                        <div class="form-row">
+                            <input type="text" placeholder="Display Name" class="input-field" id="profileDisplayName" required>
+                            <input type="text" placeholder="Username" class="input-field" id="profileUsername" required>
+                        </div>
+                        <textarea placeholder="Bio" class="input-field" id="profileBio" rows="3"></textarea>
+                        <input type="text" placeholder="City" class="input-field" id="profileCity">
+                    </div>
+
+                    <!-- User Type & Experience -->
+                    <div class="form-section">
+                        <h3>Professional Details</h3>
+                        <div class="form-row">
+                            <select class="input-field" id="profileUserType" required>
+                                <option value="">Select Type</option>
+                                <option value="photographer">Photographer</option>
+                                <option value="model">Model</option>
+                                <option value="studio">Studio</option>
+                                <option value="makeup_artist">Makeup Artist</option>
+                                <option value="stylist">Stylist</option>
+                            </select>
+                            <select class="input-field" id="profileExperience">
+                                <option value="">Experience Level</option>
+                                <option value="beginner">Beginner</option>
+                                <option value="intermediate">Intermediate</option>
+                                <option value="advanced">Advanced</option>
+                                <option value="professional">Professional</option>
+                            </select>
+                        </div>
+                        <input type="text" placeholder="Tagline" class="input-field" id="profileTagline">
+                    </div>
+
+                    <!-- Photography Styles (for photographers) -->
+                    <div class="form-section" id="photographyStylesSection">
+                        <h3>Photography Styles</h3>
+                        <div class="checkbox-grid" id="photographyStyles">
+                            <!-- Will be populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Model Details (for models) -->
+                    <div class="form-section hidden" id="modelDetailsSection">
+                        <h3>Model Details</h3>
+                        <div class="form-row">
+                            <select class="input-field" id="profileGender">
+                                <option value="">Gender</option>
+                                <option value="female">Female</option>
+                                <option value="male">Male</option>
+                                <option value="non_binary">Non-binary</option>
+                                <option value="prefer_not_to_say">Prefer not to say</option>
+                            </select>
+                            <input type="number" placeholder="Age" class="input-field" id="profileAge" min="16" max="100">
+                        </div>
+                        <div class="form-row">
+                            <input type="text" placeholder="Height (e.g., 5'6&quot;)" class="input-field" id="profileHeight">
+                            <select class="input-field" id="profileWeight">
+                                <option value="">Build</option>
+                                <option value="petite">Petite</option>
+                                <option value="slim">Slim</option>
+                                <option value="athletic">Athletic</option>
+                                <option value="curvy">Curvy</option>
+                                <option value="plus_size">Plus Size</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Artistic Statement -->
+                    <div class="form-section">
+                        <h3>Artistic Statement</h3>
+                        <textarea placeholder="Tell us about your artistic vision and approach..." 
+                                class="input-field" id="profileArtisticStatement" rows="4"></textarea>
+                    </div>
+
+                    <!-- Mission Statement -->
+                    <div class="form-section">
+                        <h3>Mission Statement</h3>
+                        <textarea placeholder="What drives your work? What message do you want to convey?" 
+                                class="input-field" id="profileMissionStatement" rows="3"></textarea>
+                    </div>
+
+                    <!-- Availability -->
+                    <div class="form-section">
+                        <h3>Availability</h3>
+                        <div class="form-row">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="profileAvailableForHire">
+                                <span class="checkmark"></span>
+                                Available for hire
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="profileAvailableForCollabs">
+                                <span class="checkmark"></span>
+                                Available for collaborations
+                            </label>
+                        </div>
+                        <input type="text" placeholder="Rate range (optional)" class="input-field" id="profileRateRange">
+                    </div>
+
+                    <!-- Location Preference -->
+                    <div class="form-section">
+                        <h3>Work Preferences</h3>
+                        <select class="input-field" id="profileLocationPreference">
+                            <option value="">Location Preference</option>
+                            <option value="local_only">Local only</option>
+                            <option value="regional">Regional (within state/province)</option>
+                            <option value="national">National</option>
+                            <option value="international">International</option>
+                        </select>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="form-actions">
+                        <button class="btn-secondary" id="cancelProfileEdit">Cancel</button>
+                        <button class="btn-primary" id="saveProfile">Save Profile</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auth Modal (if not logged in) -->
+        <div class="auth-modal hidden" id="authModal">
+            <div class="modal-content auth-content">
+                <div class="auth-header">
+                    <h1 class="auth-logo">LUMEN</h1>
+                    <p class="auth-tagline">Photography Without Compromise</p>
+                </div>
+                
+                <div class="auth-body">
+                    <h2>Join the Community</h2>
+                    <p>A professional photography platform with no ads, no algorithms, just pure photography.</p>
+                    
+                    <button class="btn-google" id="googleSignIn">
+                        <svg width="20" height="20" viewBox="0 0 24 24">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        </svg>
+                        Continue with Google
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Install PWA Prompt -->
+    <div class="install-prompt hidden" id="installPrompt">
+        <p>Install Lumen for the best experience</p>
+        <button class="btn-install" id="installBtn">Install</button>
+        <button class="btn-dismiss" id="dismissBtn">Not now</button>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/app.js" type="module"></script>
+</body>
+</html>

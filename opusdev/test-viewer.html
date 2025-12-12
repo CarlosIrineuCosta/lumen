@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Photo Viewer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
+    <style>
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 16px;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .test-photo {
+            cursor: pointer;
+            position: relative;
+            background: #1a1a1a;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .test-photo img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .test-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 10px;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            color: white;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="color: white; text-align: center; margin: 20px;">Photo Viewer Test</h1>
+    
+    <div class="test-grid" id="testGrid">
+        <!-- Test photos will be added here -->
+    </div>
+
+    <script type="module">
+        import PhotoViewer from './js/photo-viewer.js';
+        
+        // Create test data
+        const testPhotos = [
+            {
+                id: '1',
+                url: 'https://picsum.photos/800/1200?random=1',
+                thumbnail_url: 'https://picsum.photos/400/600?random=1',
+                title: 'Mountain Vista',
+                photographer_name: 'John Photographer',
+                photographer_avatar: 'https://picsum.photos/100/100?random=10',
+                location: 'Swiss Alps',
+                camera_make: 'Canon',
+                camera_model: 'EOS R5',
+                focal_length: 24,
+                aperture: 2.8,
+                shutter_speed: '1/125',
+                iso: 100,
+                series: [
+                    {
+                        url: 'https://picsum.photos/800/1200?random=11',
+                        thumbnail_url: 'https://picsum.photos/100/150?random=11',
+                        title: 'Mountain Vista 1'
+                    },
+                    {
+                        url: 'https://picsum.photos/800/1200?random=12',
+                        thumbnail_url: 'https://picsum.photos/100/150?random=12',
+                        title: 'Mountain Vista 2'
+                    },
+                    {
+                        url: 'https://picsum.photos/800/1200?random=13',
+                        thumbnail_url: 'https://picsum.photos/100/150?random=13',
+                        title: 'Mountain Vista 3'
+                    }
+                ]
+            },
+            {
+                id: '2',
+                url: 'https://picsum.photos/800/800?random=2',
+                thumbnail_url: 'https://picsum.photos/400/400?random=2',
+                title: 'Urban Architecture',
+                photographer_name: 'Jane Artist',
+                photographer_avatar: 'https://picsum.photos/100/100?random=20',
+                location: 'Tokyo, Japan',
+                camera_make: 'Sony',
+                camera_model: 'A7R IV',
+                focal_length: 35,
+                aperture: 1.4,
+                shutter_speed: '1/60',
+                iso: 400
+            },
+            {
+                id: '3',
+                url: 'https://picsum.photos/800/1000?random=3',
+                thumbnail_url: 'https://picsum.photos/400/500?random=3',
+                title: 'Portrait Study',
+                photographer_name: 'Mike Shooter',
+                photographer_avatar: 'https://picsum.photos/100/100?random=30',
+                location: 'Berlin, Germany',
+                camera_make: 'Nikon',
+                camera_model: 'Z9',
+                focal_length: 85,
+                aperture: 1.8,
+                shutter_speed: '1/200',
+                iso: 200
+            },
+            {
+                id: '4',
+                url: 'https://picsum.photos/1200/800?random=4',
+                thumbnail_url: 'https://picsum.photos/600/400?random=4',
+                title: 'Landscape Dreams',
+                photographer_name: 'Sarah Vision',
+                photographer_avatar: 'https://picsum.photos/100/100?random=40',
+                location: 'Iceland',
+                description: 'Captured during the golden hour in the Icelandic highlands. This series explores the raw beauty of untouched landscapes.',
+                series: [
+                    {
+                        url: 'https://picsum.photos/1200/800?random=41',
+                        thumbnail_url: 'https://picsum.photos/150/100?random=41',
+                        title: 'Landscape Dreams 1'
+                    },
+                    {
+                        url: 'https://picsum.photos/1200/800?random=42',
+                        thumbnail_url: 'https://picsum.photos/150/100?random=42',
+                        title: 'Landscape Dreams 2'
+                    },
+                    {
+                        url: 'https://picsum.photos/1200/800?random=43',
+                        thumbnail_url: 'https://picsum.photos/150/100?random=43',
+                        title: 'Landscape Dreams 3'
+                    },
+                    {
+                        url: 'https://picsum.photos/1200/800?random=44',
+                        thumbnail_url: 'https://picsum.photos/150/100?random=44',
+                        title: 'Landscape Dreams 4'
+                    },
+                    {
+                        url: 'https://picsum.photos/1200/800?random=45',
+                        thumbnail_url: 'https://picsum.photos/150/100?random=45',
+                        title: 'Landscape Dreams 5'
+                    }
+                ]
+            }
+        ];
+        
+        // Initialize photo viewer
+        const viewer = new PhotoViewer();
+        
+        // Create test grid
+        const grid = document.getElementById('testGrid');
+        
+        testPhotos.forEach(photo => {
+            const div = document.createElement('div');
+            div.className = 'test-photo';
+            
+            const isSeries = photo.series && photo.series.length > 0;
+            
+            div.innerHTML = `
+                <img src="${photo.thumbnail_url}" alt="${photo.title}">
+                ${isSeries ? `<div class="series-indicator">${photo.series.length} photos</div>` : ''}
+                <div class="test-info">
+                    <div>${photo.photographer_name}</div>
+                    <div style="font-size: 12px; opacity: 0.7;">${photo.location}</div>
+                </div>
+            `;
+            
+            div.addEventListener('click', () => {
+                viewer.open(photo, testPhotos, isSeries);
+            });
+            
+            grid.appendChild(div);
+        });
+        
+        console.log('Photo viewer test loaded. Click on any photo to test.');
+    </script>
+</body>
+</html>

@@ -11,20 +11,10 @@ lumen-gcp/backend/env/
 lumen-gcp/backend/ENV/
 lumen-gcp/backend/.venv
 
-# Virtual environments (current structure)
-backend/venv/
-backend/env/
-backend/ENV/
-venv/
-env/
-
 # Environment variables (SENSITIVE)
 lumen-gcp/backend/.env
 lumen-gcp/backend/.env.local
 lumen-gcp/backend/.env.*.local
-.env
-.env.local
-.env.*.local
 
 # Firebase Service Account (SENSITIVE - NEVER COMMIT)
 lumen-gcp/backend/firebase_service_account.json
@@ -56,13 +46,6 @@ Thumbs.db
 htmlcov/
 .pytest_cache/
 .tox/
-
-# Test results and reports (current structure)
-scripts/tests/reports/
-test-reports/
-*.junit.xml
-*_output.txt
-*_junit.xml
 
 # Database
 *.db
@@ -99,41 +82,3 @@ screenshots/
 *-backup-*/
 .serena/
 **/.serena/
-
-# Documentation archive (outdated docs)
-**/docs/archive/
-
-# Temporary test scripts
-**/scripts-temp/
-
-# Large files and archives (prevent commit)
-*.tar.gz
-*.zip
-*.7z
-**/server-files-*/
-**/lumen-server-files-*.tar.gz
-
-# Image and media files (test files, uploads)
-*.jpg
-*.jpeg
-*.png
-*.tiff
-*.tif
-*.gif
-*.webp
-*.bmp
-*.svg
-**/temp-images/
-**/test-images/
-**/uploads/
-**/storage/photos/
-
-# Development and backup directories
-**/server-files-20250815/
-**/backup/
-**/project-archives/
-
-# Deprecated and test directories
-docs/images-test/
-frontend-deprecated/
-frontend-v2-vite-deprecated/

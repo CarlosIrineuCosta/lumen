@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "public": "frontend",
+    "public": "public",
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -18,16 +18,10 @@
   },
   "emulators": {
     "auth": {
-      "port": 9190
+      "port": 9099
     },
     "storage": {
-      "port": 9191
-    },
-    "hub": {
-      "port": 4402
-    },
-    "logging": {
-      "port": 4502
+      "port": 9199
     },
     "ui": {
       "enabled": true

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Auth</title>
+</head>
+<body>
+    <h2>Auth Debug</h2>
+    <button onclick="clearAuth()">Clear Auth Token</button>
+    <button onclick="checkAuth()">Check Auth Status</button>
+    <div id="status"></div>
+    
+    <script>
+        function clearAuth() {
+            localStorage.removeItem('authToken');
+            document.getElementById('status').innerHTML = 'Auth token cleared. Reload the main app.';
+        }
+        
+        function checkAuth() {
+            const token = localStorage.getItem('authToken');
+            const status = document.getElementById('status');
+            
+            if (token) {
+                status.innerHTML = `Auth token exists: ${token.substring(0, 50)}...`;
+            } else {
+                status.innerHTML = 'No auth token found.';
+            }
+        }
+        
+        // Check on load
+        checkAuth();
+    </script>
+</body>
+</html>

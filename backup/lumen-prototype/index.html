@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumen - Professional Photography Network</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Justified Gallery -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.8.1/css/justifiedGallery.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+    
+    <!-- Our Styles -->
+    <link rel="stylesheet" href="css/lumen.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="main-header">
+        <div class="header-container">
+            <div class="logo">
+                <h1>LUMEN</h1>
+                <span class="tagline">Photography Without Compromise</span>
+            </div>
+            <nav class="main-nav">
+                <a href="#" class="nav-link active">Discover</a>
+                <a href="#" class="nav-link">Network</a>
+                <a href="#" class="nav-link">Portfolio</a>
+                <a href="#" class="nav-link">Profile</a>
+            </nav>
+            <div class="user-actions">
+                <button class="btn-upload">Upload</button>
+                <div class="user-menu">
+                    <img src="https://via.placeholder.com/40" alt="User" class="user-avatar">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Discovery Mode Selector -->
+    <div class="discovery-modes">
+        <button class="mode-btn active" data-mode="latest">Latest Work</button>
+        <button class="mode-btn" data-mode="photographers">Photographers</button>
+        <button class="mode-btn" data-mode="models">Models</button>
+        <button class="mode-btn" data-mode="nearby">Nearby (30km)</button>
+        <button class="mode-btn" data-mode="collaborations">Open for Work</button>
+    </div>
+
+    <!-- Main Gallery Container -->
+    <main class="main-content">
+        <div id="photo-grid" class="justified-gallery">
+            <!-- Photos will be dynamically loaded here -->
+        </div>
+        
+        <!-- Loading indicator -->
+        <div class="loading-spinner" id="loading">
+            <div class="spinner"></div>
+        </div>
+    </main>
+
+    <!-- Lightbox -->
+    <div id="lightbox" class="lightbox">
+        <div class="lightbox-content">
+            <button class="lightbox-close">&times;</button>
+            <div class="lightbox-image-container">
+                <img src="" alt="" class="lightbox-image">
+            </div>
+            <div class="lightbox-info">
+                <div class="photographer-info">
+                    <img src="" alt="" class="photographer-avatar">
+                    <div class="photographer-details">
+                        <h3 class="photographer-name"></h3>
+                        <p class="photographer-location"></p>
+                        <button class="btn-connect">Connect</button>
+                    </div>
+                </div>
+                <div class="photo-metadata">
+                    <div class="tech-info"></div>
+                    <div class="photo-tags"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/lumen-gallery.js"></script>
+</body>
+</html>

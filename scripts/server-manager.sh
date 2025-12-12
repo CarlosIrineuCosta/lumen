@@ -6,9 +6,9 @@ set -e
 # Configuration
 BACKEND_PORT=8080
 FRONTEND_PORT=8000
-PROJECT_ROOT="/home/cdc/Storage/NVMe/projects/lumen"
-BACKEND_DIR="$PROJECT_ROOT/backend"
-FRONTEND_DIR="$PROJECT_ROOT/frontend"
+PROJECT_ROOT="/home/cdc/Storage/NVMe/projects/wasenet"
+BACKEND_DIR="$PROJECT_ROOT/opusdev/backend"
+FRONTEND_DIR="$PROJECT_ROOT/opusdev"
 
 # Colors for output
 RED='\033[0;31m'

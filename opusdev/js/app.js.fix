@@ -1,0 +1,5 @@
+            case 'portfolio':
+                // User's portfolio photos only - use my-photos endpoint
+                return '/photos/my-photos?portfolio_only=true';
+                
+            default:

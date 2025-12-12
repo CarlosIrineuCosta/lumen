@@ -1,0 +1,47 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(source:*)",
+      "mcp__serena__onboarding",
+      "mcp__serena__list_dir",
+      "mcp__serena__get_symbols_overview",
+      "mcp__serena__check_onboarding_performed",
+      "mcp__serena__find_symbol",
+      "mcp__serena__search_for_pattern",
+      "mcp__serena__find_file",
+      "mcp__serena__write_memory",
+      "Bash(ls:*)",
+      "Bash(gsutil ls:*)",
+      "mcp__sequential-thinking__sequential_thinking",
+      "mcp__zen-server__planner",
+      "Bash(git add:*)",
+      "mcp__zen-server__chat",
+      "mcp__zen-server__thinkdeep",
+      "Bash(find:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "mcp__sequential-thinking__problem_breakdown",
+      "mcp__sequential-thinking__step_by_step_plan",
+      "Bash(pytest:*)",
+      "Bash(gh issue create:*)",
+      "Bash(gh project field-create:*)",
+      "Bash(gh project item-add:*)",
+      "Bash(gh project item-list:*)",
+      "Bash(gh issue close:*)",
+      "Bash(timeout:*)",
+      "mcp__serena__replace_regex",
+      "mcp__sequential-thinking__sequentialthinking",
+      "mcp__filesystem__read_text_file",
+      "mcp__filesystem__list_directory",
+      "mcp__filesystem__read_multiple_files"
+    ],
+    "deny": []
+  },
+  "enabledMcpjsonServers": [
+    "zen",
+    "serena",
+    "playwright",
+    "filesystem",
+    "sequential-thinking"
+  ]
+}
