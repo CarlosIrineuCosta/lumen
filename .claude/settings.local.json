@@ -52,7 +52,11 @@
       "WebSearch",
       "Bash(then)",
       "Bash(fi:*)",
-      "Bash(__NEW_LINE__ if [ -f /home/cdc/Storage/projects/lumen-2026/agent-system/scripts/glm_internal.py ])"
+      "Bash(__NEW_LINE__ if [ -f /home/cdc/Storage/projects/lumen-2026/agent-system/scripts/glm_internal.py ])",
+      "Bash(then mv config/agent_routing.json agent-system/config/)",
+      "Bash(then mv config/hooks_settings.json agent-system/config/)",
+      "Bash(then rmdir config)",
+      "Bash(then mv docs/implementation/IMPLEMENTATION_SUMMARY.md agent-system/docs/IMPLEMENTATION_SUMMARY.md)"
     ],
     "deny": []
   },
