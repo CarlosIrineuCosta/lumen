@@ -20,7 +20,7 @@ Professional photography platform designed as an ethical alternative to Instagra
 
 ### 📁 Technical Documentation (`/docs/technical/`)
 - [`TECHNICAL-GUIDE.md`](docs/technical/TECHNICAL-GUIDE.md) - Complete technical implementation guide
-- [`API-REFERENCE.md`](docs/technical/API-REFERENCE.md) - API endpoints and usage
+- [`api_reference.md`](docs/technical/api_reference.md) - API endpoints and usage
 - [`DATABASE-ARCHITECTURE.md`](docs/technical/DATABASE-ARCHITECTURE.md) - Critical database decisions
 
 ### 📁 Business Documentation (`/docs/business/`)
