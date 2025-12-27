@@ -56,7 +56,8 @@
       "Bash(then mv config/agent_routing.json agent-system/config/)",
       "Bash(then mv config/hooks_settings.json agent-system/config/)",
       "Bash(then rmdir config)",
-      "Bash(then mv docs/implementation/IMPLEMENTATION_SUMMARY.md agent-system/docs/IMPLEMENTATION_SUMMARY.md)"
+      "Bash(then mv docs/implementation/IMPLEMENTATION_SUMMARY.md agent-system/docs/IMPLEMENTATION_SUMMARY.md)",
+      "Bash([:*)"
     ],
     "deny": []
   },
