@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 GLM CLI wrapper for Lumen project.
-Supports Z.Ai GLM 4.6 dev plan and standard GLM CLI.
+Supports Z.Ai GLM dev plan (glm-4.7) and standard GLM API.
+Documentation: https://docs.z.ai/guides/llm/glm-4.7
 """
 
 import sys
@@ -12,15 +13,16 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-def call_glm(prompt, model='glm-4.6', timeout=300):
+def call_glm(prompt, model='glm-4.7', timeout=300):
     """
     Call GLM CLI with prompt.
 
-    Supports Z.Ai GLM 4.6 dev plan and standard GLM CLI.
+    Supports Z.Ai GLM 4.7 dev plan and standard GLM API.
+    Default model: glm-4.7 (latest, enhanced programming capabilities)
     """
 
-    # Try Z.Ai GLM 4.6 dev plan key first
-    zai_glm_api_key = os.getenv('ZAI_GLM_API_KEY')
+    # Try Z.Ai GLM dev plan key first
+    zai_glm_api_key = os.getenv('ZAI_GLM_API_KEY') or os.getenv('ZAI_API_KEY')
     glm_api_key = os.getenv('GLM_API_KEY')
 
     if not zai_glm_api_key and not glm_api_key:

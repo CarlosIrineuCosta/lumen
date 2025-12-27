@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 Test script to compare BigModel.cn vs ZAI API endpoints
+Updated for glm-4.7 testing (2025-12-26)
 """
 
 import requests
@@ -11,7 +12,7 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-API_KEY = os.getenv("GLM_API_KEY")
+API_KEY = os.getenv("GLM_API_KEY") or os.getenv("ZAI_GLM_API_KEY") or os.getenv("ZAI_API_KEY")
 
 # Different endpoints to test
 ENDPOINTS = {
@@ -19,7 +20,7 @@ ENDPOINTS = {
     "ZAI": "https://api.z.ai/api/paas/v4/"
 }
 
-MODELS = ["glm-4.5", "glm-4.6"]
+MODELS = ["glm-4.5", "glm-4.6", "glm-4.7"]
 
 def test_endpoint(endpoint_name, base_url, model):
     """Test a specific endpoint and model combination"""

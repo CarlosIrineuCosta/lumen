@@ -30,7 +30,7 @@ def call_glm_internal(task_description, context_files=None):
             context += f"\n\n=== {file_path} (Error reading: {e}) ===\n"
 
     # Create a structured prompt that would be sent to GLM
-    prompt = f"""You are GLM (glm-4.5-flash), an AI assistant helping with the Lumen project.
+    prompt = f"""You are GLM (glm-4.7), an AI assistant helping with the Lumen project.
 
 Task: {task_description}
 
@@ -60,7 +60,7 @@ Please provide a response following this format:
     return {
         'requires_claude_code': True,
         'prompt': prompt,
-        'model': 'glm-4.5-flash',
+        'model': 'glm-4.7',
         'task': task_description,
         'context_files': context_files
     }

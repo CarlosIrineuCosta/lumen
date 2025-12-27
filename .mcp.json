@@ -1,26 +1,15 @@
 {
   "mcpServers": {
     "zen": {
-      "command": "sh",
-      "args": [
-        "-c",
-        "cd ~/.zen-mcp-server && source .zen_venv/bin/activate && source .env && python -m server"
-      ]
+      "command": "~/.zen-mcp-server/zen-mcp-server"
     },
     "serena": {
       "command": "/home/cdc/mcp-servers/serena-start.sh",
-      "args": ["--context", "ide-assistant", "--project", "/home/cdc/Storage/NVMe/projects/wasenet"]
+      "args": ["--context", "ide-assistant", "--project", "/home/cdc/Storage/projects/lumen-2026"]
     },
     "playwright": {
       "command": "npx",
       "args": ["@executeautomation/playwright-mcp-server"]
-    },
-    "filesystem": {
-      "command": "npx",
-      "args": [
-        "@modelcontextprotocol/server-filesystem",
-        "/home/cdc/Storage/NVMe/projects/wasenet"
-      ]
     },
     "sequential-thinking": {
       "command": "npx",

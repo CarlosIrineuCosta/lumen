@@ -25,10 +25,10 @@ echo "----------------------------------"
 echo "Running comprehensive system evaluation..."
 echo ""
 
-# Run GLM appraisal
+# Run GLM appraisal (using glm-4.7 for enhanced programming analysis)
 echo "GLM_APPRAISAL_START=$(date)" > .appraisal_log.txt
 claude --prompt "$(cat agent-system/prompts/complete_system_appraisal.txt)" \
-    --model glm-4.5-flash \
+    --model glm-4.7 \
     --output appraisal_report_glm.md \
     --temperature 0.3 \
     --max-tokens 8000

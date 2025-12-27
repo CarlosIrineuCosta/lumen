@@ -1,1 +1,1 @@
-/home/cdc/Storage/projects/lumen/agent-system/hooks/auxiliary/docs_update_trigger.py
+/home/cdc/Storage/projects/lumen-2026/agent-system/hooks/auxiliary/docs_update_trigger.py

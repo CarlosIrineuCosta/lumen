@@ -33,7 +33,26 @@
       "mcp__sequential-thinking__sequentialthinking",
       "mcp__filesystem__read_text_file",
       "mcp__filesystem__list_directory",
-      "mcp__filesystem__read_multiple_files"
+      "mcp__filesystem__read_multiple_files",
+      "Bash(git submodule:*)",
+      "Bash(chmod:*)",
+      "SlashCommand(/audit --output docs/audits --format json --scope docs)",
+      "Bash(./.claude/commands/audit.sh:*)",
+      "Bash(sed:*)",
+      "Bash(cat:*)",
+      "Bash(python -m server:*)",
+      "Bash(grep:*)",
+      "Bash(python3:*)",
+      "Bash(python:*)",
+      "Bash(~/.zen-mcp-server/zen-mcp-server:*)",
+      "Bash(echo:*)",
+      "Bash(tree:*)",
+      "mcp__serena__think_about_collected_information",
+      "Bash(env:*)",
+      "WebSearch",
+      "Bash(then)",
+      "Bash(fi:*)",
+      "Bash(__NEW_LINE__ if [ -f /home/cdc/Storage/projects/lumen-2026/agent-system/scripts/glm_internal.py ])"
     ],
     "deny": []
   },
@@ -41,7 +60,6 @@
     "zen",
     "serena",
     "playwright",
-    "filesystem",
     "sequential-thinking"
   ]
 }

@@ -1,1 +1,1 @@
-/home/cdc/Storage/projects/lumen/agent-system/hooks/auxiliary/root_protection.py
+/home/cdc/Storage/projects/lumen-2026/agent-system/hooks/auxiliary/root_protection.py

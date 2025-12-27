@@ -1,1 +1,1 @@
-/home/cdc/Storage/projects/lumen/agent-system/hooks/core/quality_gate.py
+/home/cdc/Storage/projects/lumen-2026/agent-system/hooks/core/quality_gate.py
