@@ -380,6 +380,88 @@ gcloud sql connect instance-name --user=username
 2. Verify Firebase UID format matches between database and GCS paths
 3. Test: `gsutil ls gs://lumen-photos-20250731/photos/` to see actual file paths
 
+## File Organization Standards
+
+### Root Directory Rules
+- **ONLY** these files belong in root:
+  - Project README: README.md
+  - AI Instructions: CLAUDE.md
+  - Coordination: SHARED-STATUS.md, PROJECT_VISION.md
+  - Git: .gitignore, .gitmodules
+  - Firebase: firebase.json, .firebaserc, storage.rules (CANNOT move - Firebase CLI requirement)
+  - Config: .mcp.json, lumen.code-workspace
+- **ALL other files** go in appropriate subdirectories
+- **NEVER** create documentation files (.md) in root - always use docs/ subdirectories
+
+### Directory Structure
+```
+lumen-2026/
+├── agent-system/         # Agent development tool (separate project)
+├── opusdev/              # Lumen active development codebase
+├── config/               # Configuration files (templates, test configs)
+├── docs/                 # ALL project documentation
+├── scripts/              # ALL utility and setup scripts
+└── [essential config only in root]
+```
+
+### Documentation Rules
+
+**Location Rules:**
+- `/docs/core/` - Essential reference docs (architecture, API, deployment)
+- `/docs/technical/` - Implementation details and guides
+- `/docs/business/` - Business strategy and analysis
+- `/docs/tasks/` - Active tasks with dates: `tasks_YYYY-MM-DD.md`
+- `/docs/archive/` - Dated folders: `YYYY-MM-DD-purpose/`
+
+**Single Source of Truth:**
+- Each topic has ONE authoritative document
+- Old versions → dated archive immediately
+- No "working", "updated", or "backup" duplicates in active dirs
+- API documentation: `docs/technical/api_reference.md` (only one!)
+
+**Naming Conventions:**
+- Use lowercase_with_underscores
+- Descriptive names: `database_architecture.md` not `DATABASE-ARCHITECTURE.md`
+- Date prefixes for archives: `2025-12-27-api-doc-consolidation/`
+
+**Documentation Lifecycle:**
+1. Active tasks in `/docs/tasks/tasks_YYYY-MM-DD.md`
+2. Completed → `/docs/tasks_completed.md`
+3. Old daily tasks → archive after 7 days to dated archive folder
+4. Major doc updates → archive old version to dated folder
+
+### Script Organization
+- `/scripts/setup/` - Installation and setup scripts
+- `/scripts/utilities/` - Reusable utility scripts
+- `/scripts/archive/` - Deprecated or one-time scripts
+- NO scripts in root directory
+- Agent-system scripts stay in `agent-system/scripts/`
+
+## Opusdev Directory Structure
+
+The active development codebase resides in `opusdev/` (named from a historical branch).
+**This directory name is intentional** - changing it would break:
+- All Python import statements
+- Test configurations
+- Deployment scripts
+- CI/CD pipelines
+- Any absolute path references
+
+**Structure:**
+```
+opusdev/
+├── backend/          # FastAPI application
+│   ├── app/         # Application code
+│   ├── tests/       # Comprehensive test suite
+│   └── [config]
+├── frontend/        # Progressive Web App
+│   ├── [html, css, js]
+│   └── assets/
+└── README.md        # Opusdev-specific documentation
+```
+
+**Accept this naming** - it's quirky but functional. Focus on keeping the INSIDE clean.
+
 ## Important Notes
 - Development environment accessible from any OS via Tailscale network
 - Daily budget monitoring implemented (target: $3-7/day)

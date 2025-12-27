@@ -4,13 +4,13 @@
   "delegated_to_codex": [],
   "pending_reviews": [
     {
-      "file_path": "/home/cdc/.claude/plans/async-rolling-widget.md",
+      "file_path": "/home/cdc/Storage/projects/lumen-2026/CLAUDE.md",
       "reviewer": "glm",
       "author": "claude",
       "status": "completed",
-      "timestamp": "2025-12-27T00:19:06.019939",
-      "review_id": "review_1766805546",
-      "completion_timestamp": "2025-12-27T00:19:06.042560",
+      "timestamp": "2025-12-27T01:24:47.197082",
+      "review_id": "review_1766809487",
+      "completion_timestamp": "2025-12-27T01:24:47.219786",
       "result": {
         "approved": true,
         "success": false,
@@ -19,58 +19,13 @@
       }
     },
     {
-      "file_path": "/home/cdc/.claude/plans/async-rolling-widget.md",
+      "file_path": "/home/cdc/Storage/projects/lumen-2026/docs/tasks/tasks_2025-12-01.md",
       "reviewer": "glm",
       "author": "claude",
       "status": "completed",
-      "timestamp": "2025-12-27T00:19:06.130990",
-      "review_id": "review_1766805546",
-      "completion_timestamp": "2025-12-27T00:19:06.153161",
-      "result": {
-        "approved": true,
-        "success": false,
-        "error": "python: can't open file '/home/cdc/Storage/projects/lumen-2026/.claude/scripts/llm/glm_cli.py': [Errno 2] No such file or directory\n",
-        "review": ""
-      }
-    },
-    {
-      "file_path": "/home/cdc/.claude/plans/async-rolling-widget.md",
-      "reviewer": "glm",
-      "author": "claude",
-      "status": "completed",
-      "timestamp": "2025-12-27T00:19:06.247307",
-      "review_id": "review_1766805546",
-      "completion_timestamp": "2025-12-27T00:19:06.269068",
-      "result": {
-        "approved": true,
-        "success": false,
-        "error": "python: can't open file '/home/cdc/Storage/projects/lumen-2026/.claude/scripts/llm/glm_cli.py': [Errno 2] No such file or directory\n",
-        "review": ""
-      }
-    },
-    {
-      "file_path": "/home/cdc/.claude/plans/async-rolling-widget.md",
-      "reviewer": "glm",
-      "author": "claude",
-      "status": "completed",
-      "timestamp": "2025-12-27T00:19:06.366298",
-      "review_id": "review_1766805546",
-      "completion_timestamp": "2025-12-27T00:19:06.387954",
-      "result": {
-        "approved": true,
-        "success": false,
-        "error": "python: can't open file '/home/cdc/Storage/projects/lumen-2026/.claude/scripts/llm/glm_cli.py': [Errno 2] No such file or directory\n",
-        "review": ""
-      }
-    },
-    {
-      "file_path": "/home/cdc/.claude/plans/async-rolling-widget.md",
-      "reviewer": "glm",
-      "author": "claude",
-      "status": "completed",
-      "timestamp": "2025-12-27T00:19:06.493189",
-      "review_id": "review_1766805546",
-      "completion_timestamp": "2025-12-27T00:19:06.515494",
+      "timestamp": "2025-12-27T01:25:01.403877",
+      "review_id": "review_1766809501",
+      "completion_timestamp": "2025-12-27T01:25:01.427367",
       "result": {
         "approved": true,
         "success": false,
@@ -87,6 +42,6 @@
   "hooks_executed": [
     "quality_gate"
   ],
-  "last_activity": "2025-12-27T00:19:06.515502",
+  "last_activity": "2025-12-27T01:25:01.427375",
   "session_id": null
 }
